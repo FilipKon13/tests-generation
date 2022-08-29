@@ -12,6 +12,9 @@ class Space {
 } space;
 
 class Output : public std::ostream {
+    enum DumpState : int8_t {
+        FIRST, SPACE, NON_SPACE
+    }; 
 public:
     Output(std::ostream && stream) : std::ostream(std::move(stream)) {}
     Output(std::ostream & stream) {
@@ -27,30 +30,27 @@ public:
         rdbuf(stream->rdbuf());
     }
     template<typename T>
-    friend Output& operator<<(Output & s, T const & out) {
-        *static_cast<std::ostream*>(&s) << out;
-        return s;
+    Output& operator<<(T const & out) {
+        *static_cast<std::ostream*>(this) << out;
+        return * this;
     }
-
-    // TODO : remove recursive template
 
     // no forwarding references as output needs l-value references anyway
-    template<typename Arg1, typename Arg2, typename... Args>
-    void dump_output(Arg1 const & first, Arg2 const & second, Args const &... outs) {
-        *this << first;
-        if constexpr (!std::is_same<Arg1, Space>::value && !std::is_same<Arg2, Space>::value)
-            *this << '\n';
-        dump_output(second, outs...);
+    template<typename... Args>
+    void dump_output(Args const &... outs) {
+        if constexpr (sizeof...(outs)) {
+            auto state = FIRST;
+            ([&]() mutable {
+                constexpr auto is_space = std::is_same_v<Args, Space>;
+                if (state == NON_SPACE && !is_space)
+                    *this << '\n';
+                *this << outs;
+                state = is_space ? SPACE : NON_SPACE;
+            }(), ...);
+            if(state == NON_SPACE)
+                *this << '\n';
+        }
     }
-
-    template<typename Arg> // last thing with newline, unless space
-    void dump_output(Arg const & outs) {
-        *this << outs;
-        if constexpr (!std::is_same<Arg, Space>::value)
-            *this << '\n';
-    }
-
-    void dump_output() {} // empty
 };
 
 } /* namespace test */
