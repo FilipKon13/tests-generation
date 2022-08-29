@@ -14,6 +14,9 @@ SRCFILES:= $(wildcard $(SRCDIR)/*.hpp)
 
 test: $(TESTTARGET)
 
+tidy:
+	clang-tidy $(SRCFILES) -- -std=c++17 -Isrc
+
 %.test: $(TESTDIR)/out/%.t
 	./$<
 
@@ -25,5 +28,5 @@ clean:
 
 .SECONDARY: $(TESTOBJ)
 
-.PHONY: test, $(subst $(SPACE),$(COMMA),$(TESTTARGET)), clean
+.PHONY: test, $(subst $(SPACE),$(COMMA),$(TESTTARGET)), clean, tidy
 

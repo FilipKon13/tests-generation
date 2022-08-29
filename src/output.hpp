@@ -17,12 +17,10 @@ class Output : public std::ostream {
     }; 
 public:
     Output(std::ostream && stream) : std::ostream(std::move(stream)) {}
-    Output(std::ostream & stream) {
-        set(&stream);
-    }
+    Output(std::ostream & stream) {set(&stream);}
     Output() = default;
     Output(const Output&) = delete;
-    Output(Output&&) = default;
+    Output(Output&&) = delete;
     Output& operator=(const Output&) = delete;
     Output& operator=(Output&&) = default;
     ~Output() = default;
@@ -38,9 +36,9 @@ public:
     // no forwarding references as output needs l-value references anyway
     template<typename... Args>
     void dump_output(Args const &... outs) {
-        if constexpr (sizeof...(outs)) {
+        if constexpr (sizeof...(outs) != 0) {
             auto state = FIRST;
-            ([&]() mutable {
+            ([&] {
                 constexpr auto is_space = std::is_same_v<Args, Space>;
                 if (state == NON_SPACE && !is_space)
                     *this << '\n';
