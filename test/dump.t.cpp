@@ -48,6 +48,15 @@ void test_multiple_space() {
     assert(stream.str() == "1 22 333\n");
 }
 
+void test_space_at_end() {
+    std::stringstream stream;
+    Output out(stream);
+    
+    out.dump_output(1, space, "22", std::string("333"), space);
+
+    assert(stream.str() == "1 22\n333 ");
+}
+
 int main() {
     test_empty();
     test_single_int();

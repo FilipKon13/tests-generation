@@ -12,9 +12,6 @@ class Space {
 } space;
 
 class Output : public std::ostream {
-    enum DumpState : int8_t {
-        FIRST, SPACE, NON_SPACE
-    }; 
 public:
     Output(std::ostream && stream) : std::ostream(std::move(stream)) {}
     Output(std::ostream & stream) {set(&stream);}
@@ -22,17 +19,25 @@ public:
     Output(const Output&) = delete;
     Output(Output&&) = delete;
     Output& operator=(const Output&) = delete;
-    Output& operator=(Output&&) = default;
+    Output& operator=(Output&&) = delete;
     ~Output() = default;
+
     void set(std::ostream * stream) {
         rdbuf(stream->rdbuf());
     }
+
     template<typename T>
     Output& operator<<(T const & out) {
         *static_cast<std::ostream*>(this) << out;
         return * this;
     }
 
+private:
+    enum DumpState : int8_t {
+        FIRST, SPACE, NON_SPACE
+    };
+
+public: 
     // no forwarding references as output needs l-value references anyway
     template<typename... Args>
     void dump_output(Args const &... outs) {

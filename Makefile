@@ -3,8 +3,8 @@ SRCDIR:= $(BASEDIR)/src
 TESTDIR:= $(BASEDIR)/test
 TESTS:= $(wildcard $(TESTDIR)/*.t.cpp)
 CPPC:= g++
-CPPFLAGS:= -g -std=c++17 -Wall -Werror
-TESTFLAGS:= -I $(SRCDIR)
+CPPFLAGS:= -O3 -std=c++17 -Wall -Werror
+TESTFLAGS:= -g -I $(SRCDIR)
 TESTTARGET:= $(patsubst $(TESTDIR)/%.t.cpp,%.test,$(TESTS))
 TESTOBJ:= $(patsubst %.test,$(TESTDIR)/out/%.t,$(TESTTARGET))
 EMPTY:=
@@ -15,7 +15,7 @@ SRCFILES:= $(wildcard $(SRCDIR)/*.hpp)
 test: $(TESTTARGET)
 
 tidy:
-	clang-tidy $(SRCFILES) -- -std=c++17 -Isrc
+	clang-tidy $(SRCFILES) -- -std=c++17
 
 %.test: $(TESTDIR)/out/%.t
 	./$<
