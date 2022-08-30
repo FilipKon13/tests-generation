@@ -28,7 +28,7 @@ public:
 
     template<typename T>
     Output& operator<<(T const & out) {
-        *static_cast<std::ostream*>(this) << out;
+        static_cast<std::ostream&>(*this) << out;
         return * this;
     }
 

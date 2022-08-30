@@ -19,6 +19,25 @@ struct testcase {
 
 template<typename TestcaseManager>
 class Testing : public Output, private TestcaseManager {
+
+    template<typename T>
+    struct is_generating
+    {
+    private:
+        template<typename V>
+        static decltype(static_cast<const Generating<V>&>(std::declval<T>()), std::true_type{})
+        helper(const Generating<V>&);
+        
+        static std::false_type helper(...); /* fallback */
+    public:
+        static constexpr bool value = decltype(helper(std::declval<T>()))::value;
+    };
+
+    template<typename T>
+    T generate(Generating<T> const & schema) {
+        return schema.generate(this->current().generator);
+    }
+
 public:
     using TestcaseManager::TestcaseManager;
 
@@ -44,13 +63,23 @@ public:
     }
 
     template<typename... T>
-    void print(T const &... args) { // TODO generate
-        dump_output(args...);
+    void print(T const &... args) {
+        dump_output((*this)(args)...);
     }
 
     template<typename T>
-    T operator()(Generating<T> const & schema) {
-        return schema.generate(this->current().generator);
+    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
+        if constexpr (is_generating<T>::value) {
+            return generate(t);
+        } else {
+            return t;
+        }
+    }
+
+    template<typename T>
+    Testing& operator<<(const T & out) {
+        static_cast<Output&>(*this) << (*this)(out);
+        return * this;
     }
 };
 

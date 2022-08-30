@@ -9,7 +9,7 @@ using gen_type = std::mt19937;
 
 template<typename T>
 struct Generating {
-    virtual T generate(gen_type & gen) = 0;
+    virtual T generate(gen_type & gen) const = 0;
 };
 
 template<typename T, typename enable = void> class uniform_distribution;

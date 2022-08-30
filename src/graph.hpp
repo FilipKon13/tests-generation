@@ -45,7 +45,7 @@ public:
         assert(n >= 1 && range >= 1);
     }
     constexpr Tree(int n, bool permute = true) : Tree{n, permute, n} {}
-    Graph generate(gen_type & gen) override {
+    Graph generate(gen_type & gen) const override {
         Graph G{static_cast<unsigned long>(n)};
         for(int i = 2; i <= n; ++i) {
             const auto begin = std::max(1, i - range);
