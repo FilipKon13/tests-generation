@@ -11,11 +11,12 @@ EMPTY:=
 SPACE:= $(EMPTY) $(EMPTY)
 COMMA:= ,$(SPACE)
 SRCFILES:= $(wildcard $(SRCDIR)/*.hpp)
+CLANG_TIDY_FLAGS:= -checks=*,-modernize-use-trailing-return-type,-llvm-header-guard,-fuchsia-overloaded-operator,-fuchsia-multiple-inheritance,-misc-definitions-in-headers,-fuchsia-default-arguments-declarations,-fuchsia-default-arguments-calls
 
 test: $(TESTTARGET)
 
 tidy:
-	clang-tidy $(SRCFILES) -- -std=c++17
+	clang-tidy $(CLANG_TIDY_FLAGS) $(SRCFILES) -- -std=c++17
 
 %.test: $(TESTDIR)/out/%.t
 	./$<

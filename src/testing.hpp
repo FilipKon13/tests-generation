@@ -15,24 +15,12 @@ namespace test {
 struct testcase {
     std::ostream * stream;
     gen_type generator;
+    template<typename T>
+    testcase(std::ostream * stream, T&& generator) : stream{stream}, generator{std::forward<T>(generator)} {}
 };
 
 template<typename TestcaseManager>
-class Testing : public Output, private TestcaseManager {
-
-    template<typename T>
-    struct is_generating
-    {
-    private:
-        template<typename V>
-        static decltype(static_cast<const Generating<V>&>(std::declval<T>()), std::true_type{})
-        helper(const Generating<V>&);
-        
-        static std::false_type helper(...); /* fallback */
-    public:
-        static constexpr bool value = decltype(helper(std::declval<T>()))::value;
-    };
-
+class Testing : private Output, private TestcaseManager {
     template<typename T>
     T generate(Generating<T> const & schema) {
         return schema.generate(this->current().generator);
@@ -45,6 +33,7 @@ public:
     Testing(Testing&&) = delete;
     Testing& operator=(const Testing&) = delete;
     Testing& operator=(Testing&&) = delete;
+    ~Testing() override = default;
 
     void nextSuite() {
         this->TestcaseManager::nextSuite();
@@ -78,7 +67,7 @@ public:
 
     template<typename T>
     Testing& operator<<(const T & out) {
-        static_cast<Output&>(*this) << (*this)(out);
+        static_cast<std::ostream&>(*this) << (*this)(out);
         return * this;
     }
 };
