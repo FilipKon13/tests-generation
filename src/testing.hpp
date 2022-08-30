@@ -47,6 +47,11 @@ public:
     void print(T const &... args) { // TODO generate
         dump_output(args...);
     }
+
+    template<typename T>
+    T operator()(Generating<T> const & schema) {
+        return schema.generate(this->current().generator);
+    }
 };
 
 } /* namespace test */
