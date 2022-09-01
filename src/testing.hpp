@@ -10,20 +10,11 @@
 
 namespace test {
 
-// testcase does not manage lifetime of ostream object -
-// manager should be responsible for that
-struct testcase {
-    std::ostream * stream;
-    gen_type generator;
-    template<typename T>
-    testcase(std::ostream * stream, T&& generator) : stream{stream}, generator{std::forward<T>(generator)} {}
-};
-
 template<typename TestcaseManager>
 class Testing : private Output, private TestcaseManager {
     template<typename T>
     T generate(Generating<T> const & schema) {
-        return schema.generate(this->current().generator);
+        return schema.generate(this->generator());
     }
 
 public:
@@ -37,18 +28,18 @@ public:
 
     void nextSuite() {
         this->TestcaseManager::nextSuite();
-        set(this->current().stream);
+        set(this->stream());
     }
 
     void nextTest() {
         this->TestcaseManager::nextTest();
-        set(this->current().stream);
+        set(this->stream());
     }
 
     template<typename... T>
     void test(T&&... args) {
         this->TestcaseManager::test(std::forward<T>(args)...);
-        set(this->current().stream);
+        set(this->stream());
     }
 
     template<typename... T>

@@ -10,7 +10,7 @@
 namespace test {
 
 namespace detail {
-    std::vector<int> get_permutation(int n, gen_type & gen) { // NOLINT(google-runtime-references) this is how random works
+    std::vector<int> get_permutation(int n, gen_type & gen) {
         std::vector<int> V(n + 1, -1);
         std::iota(std::begin(V) + 1, std::end(V), 1);
         std::shuffle(std::begin(V) + 1, std::end(V), gen);
@@ -29,7 +29,7 @@ public:
         (*this)[a].push_back(b);
         (*this)[b].push_back(a);
     }
-    void permute(gen_type & gen) { // NOLINT(google-runtime-references) this is how random works
+    void permute(gen_type & gen) {
         const int n = static_cast<int>(G.size());
         const auto per = detail::get_permutation(n, gen);
         Graph new_G(G.size());
@@ -43,12 +43,8 @@ public:
         }
         *this = std::move(new_G);
     }
-    [[nodiscard]] auto begin() {
-        return std::begin(G);
-    }
-    [[nodiscard]] auto end() {
-        return std::end(G);
-    }
+    [[nodiscard]] auto begin() {return std::begin(G);}
+    [[nodiscard]] auto end() {return std::end(G);}
     [[nodiscard]] container_t::size_type size() const {return G.size();}
 };
 static_assert(std::is_move_constructible<Graph>::value);

@@ -5,17 +5,20 @@
 using namespace test;
 
 struct TestManager {
-    std::stringstream & stream;
-    testcase tcase;
-    TestManager(std::stringstream & stream) : stream{stream}, tcase{&stream, gen_type{}} {}
+    std::stringstream & stream_;
+    gen_type gen_{};
+    TestManager(std::stringstream & stream) : stream_{stream} {}
     void nextSuite() {
-        stream << "next suite\n";
+        stream_ << "next suite\n";
     }
     void nextTest() {
-        stream << "next test\n";
+        stream_ << "next test\n";
     }
-    testcase& current() {
-        return tcase;
+    std::ostream & stream() {
+        return stream_;
+    }
+    gen_type & generator() {
+        return gen_;
     }
 };
 

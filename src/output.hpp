@@ -14,17 +14,15 @@ class Space {
 class Output : public std::ostream {
 public:
     explicit Output(std::ostream && stream) : std::ostream(std::move(stream)) {}
-    explicit Output(std::ostream & stream) {set(&stream);}
+    explicit Output(std::ostream const & stream) {set(stream);}
     Output() = default;
-    Output(const Output&) = delete;
+    Output(Output const &) = delete;
     Output(Output&&) = delete;
-    Output& operator=(const Output&) = delete;
+    Output& operator=(Output const &) = delete;
     Output& operator=(Output&&) = delete;
     ~Output() override = default;
 
-    void set(std::ostream * stream) {
-        rdbuf(stream->rdbuf());
-    }
+    void set(std::ostream const & stream) {rdbuf(stream.rdbuf());}
 
 private:
     enum DumpState : int8_t {SPACE, NON_SPACE};

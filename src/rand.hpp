@@ -9,7 +9,7 @@ using gen_type = std::mt19937;
 
 template<typename T>
 struct Generating {
-    virtual T generate(gen_type & gen) const = 0; // NOLINT(google-runtime-references) this is how random works
+    virtual T generate(gen_type & gen) const = 0;
 };
 
 template<typename T>
@@ -32,7 +32,7 @@ class uniform_distribution<T, std::enable_if_t<std::is_integral_v<T>>> {
     std::uniform_int_distribution<T> dist;
 public:
     uniform_distribution(T begin, T end) : dist{begin, end} {}
-    T operator()(gen_type & gen) { // NOLINT(google-runtime-references) this is how random works
+    T operator()(gen_type & gen) {
         return dist(gen);
     }
 };
@@ -41,6 +41,11 @@ template<typename T>
 class uniform_distribution<T, std::enable_if_t<std::is_floating_point_v<T>>> {
 
 };
+
+template<typename... T>
+struct combine : T... {using T::operator()...;};        //NOLINT(fuchsia-trailing-return)
+
+template<typename... T> combine(T...) -> combine<T...>; //NOLINT(fuchsia-trailing-return) 
 
 } /* namespace test */
 
