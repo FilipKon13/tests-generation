@@ -25,6 +25,7 @@ public:
     static constexpr bool value = decltype(helper(std::declval<T>()))::value;
 };
 
+
 template<typename T, typename enable = void> class uniform_distribution;
 
 template<typename T>
