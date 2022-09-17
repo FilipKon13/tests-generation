@@ -1,14 +1,15 @@
-#include <type_traits>
 #include <algorithm>
-#include <memory>
 #include <cassert>
-#include <vector>
+#include <fstream>
+#include <initializer_list>
+#include <memory>
+#include <ostream>
 #include <random>
+#include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <variant>
-#include <ostream>
-#include <fstream>
-#include <string_view>
+#include <vector>
 
 namespace test {
 
@@ -40,7 +41,7 @@ public:
         assert(begin <= end);
     }
     template<typename Gen>
-    T operator()(Gen&& gen) {
+    T operator()(Gen&& gen) const {
         return UniDist::gen(_begin, _end, std::forward<Gen>(gen));
     }
     template<typename Gen>
@@ -475,5 +476,43 @@ public:
         return s;
     }
 };
+
+template<typename Dist, typename T>
+class DistSequence : Generating<Sequence<T>> {
+    std::size_t _N;
+    Dist _dist;
+public:
+    constexpr DistSequence(std::size_t N, T begin, T end) noexcept : _N(N), _dist(begin, end) {}
+    Sequence<T> generate(gen_type & gen) const override {
+        return Sequence<T>(_N, [&]{return _dist(gen);});
+    }
+};
+
+template<typename T>
+using UniSequence = DistSequence<UniDist<T>, T>;
+
+template<typename T, std::size_t S>
+class FiniteSequence : Generating<Sequence<T>> {
+    std::size_t _N;
+    std::array<T, S> _elems;
+
+    template<std::size_t... Indx>
+    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...> /* unused */) { //NOLINT constructor from c-style-array
+        return std::array<T, S>({arr[Indx]...});
+    }
+
+public:
+    constexpr FiniteSequence(std::size_t N, std::array<T, S> const & arr) : _N(N), _elems(arr) {}
+    constexpr FiniteSequence(std::size_t N, T const (&arr)[S]) : _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {} //NOLINT constructor from c-style-array
+    Sequence<T> generate(gen_type & gen) const override {
+        return Sequence<T>(_N, [&, dist = UniDist<std::size_t>(0, S-1)]{return _elems[dist(gen)];});
+    }
+};
+
+template<typename IntType, typename T, std::size_t S>
+FiniteSequence(IntType, std::array<T, S> const &) -> FiniteSequence<T, S>;
+
+template<typename IntType, typename T, std::size_t S>
+FiniteSequence(IntType, T const (&)[S]) -> FiniteSequence<T, S>; //NOLINT constructor from c-style-array
 
 } /* namespace test */

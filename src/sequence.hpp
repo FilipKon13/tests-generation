@@ -70,29 +70,29 @@ public:
 template<typename T>
 using UniSequence = DistSequence<UniDist<T>, T>;
 
-template<typename T, unsigned long S>
+template<typename T, std::size_t S>
 class FiniteSequence : Generating<Sequence<T>> {
     std::size_t _N;
     std::array<T, S> _elems;
 
     template<std::size_t... Indx>
-    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...>) {
+    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...> /* unused */) { //NOLINT constructor from c-style-array
         return std::array<T, S>({arr[Indx]...});
     }
 
 public:
     constexpr FiniteSequence(std::size_t N, std::array<T, S> const & arr) : _N(N), _elems(arr) {}
-    constexpr FiniteSequence(std::size_t N, T const (&arr)[S]) : _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {}
+    constexpr FiniteSequence(std::size_t N, T const (&arr)[S]) : _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {} //NOLINT constructor from c-style-array
     Sequence<T> generate(gen_type & gen) const override {
         return Sequence<T>(_N, [&, dist = UniDist<std::size_t>(0, S-1)]{return _elems[dist(gen)];});
     }
 };
 
-template<typename IntType, typename T, unsigned long S>
+template<typename IntType, typename T, std::size_t S>
 FiniteSequence(IntType, std::array<T, S> const &) -> FiniteSequence<T, S>;
 
-template<typename IntType, typename T, unsigned long S>
-FiniteSequence(IntType, T const (&)[S]) -> FiniteSequence<T, S>;
+template<typename IntType, typename T, std::size_t S>
+FiniteSequence(IntType, T const (&)[S]) -> FiniteSequence<T, S>; //NOLINT constructor from c-style-array
 
 } /* namespace test */
 

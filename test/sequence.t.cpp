@@ -56,23 +56,30 @@ void test_uni_sequence() {
 void test_finite_sequence() {
     gen_type gen{};
     {
-        FiniteSequence seq(5, (int[]){10, 20, 30});
+        FiniteSequence seq(20, (int[]){10, 20, 30});
         auto res = seq.generate(gen);
-        assert(res.size() == 5);
+        assert(res.size() == 20);
         for(auto v : res)   assert(v == 10 || v == 20 || v == 30);
+        for(int i=1;i<=3;++i)   assert(find(res.begin(), res.end(), i*10) != res.end());
     }
     {
-        FiniteSequence seq(5, array{10, 20, 30});
+        FiniteSequence seq(20, {10, 20, 30});
         auto res = seq.generate(gen);
-        assert(res.size() == 5);
+        assert(res.size() == 20);
         for(auto v : res)   assert(v == 10 || v == 20 || v == 30);
+        for(int i=1;i<=3;++i)   assert(find(res.begin(), res.end(), i*10) != res.end());
     }
     {
         int arr[] = {10, 20, 30};
-        FiniteSequence seq(5, arr);
+        FiniteSequence seq(20, arr);
         auto res = seq.generate(gen);
-        assert(res.size() == 5);
+        assert(res.size() == 20);
         for(auto v : res)   assert(v == 10 || v == 20 || v == 30);
+        for(int i=1;i<=3;++i)   assert(find(res.begin(), res.end(), i*10) != res.end());
+    }
+    {
+        auto res = FiniteSequence(5, {1.0, 2.0, 3.0}).generate(gen).front();
+        static_assert(std::is_same_v<decltype(res), double>);
     }
 }
 

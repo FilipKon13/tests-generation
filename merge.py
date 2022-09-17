@@ -53,7 +53,7 @@ def dfs(file : file, output):
                 output.write(line)
 
 with open(TARGET_PATH, 'w') as out:
-    for include in includes_set:
+    for include in sorted(includes_set):
         out.write(include)
     out.write('\nnamespace test {\n')
     for file in filemap.values():
