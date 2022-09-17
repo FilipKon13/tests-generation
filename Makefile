@@ -11,7 +11,7 @@ EMPTY:=
 SPACE:= $(EMPTY) $(EMPTY)
 COMMA:= ,$(SPACE)
 SRCFILES:= $(wildcard $(SRCDIR)/*.hpp)
-CLANG_TIDY_FLAGS:= -checks=*,-modernize-use-trailing-return-type,-llvm-header-guard,-fuchsia-overloaded-operator,-fuchsia-multiple-inheritance,-misc-definitions-in-headers,-fuchsia-default-arguments-declarations,-fuchsia-default-arguments-calls,-google-runtime-references
+CLANG_TIDY_FLAGS:= -checks=*,-modernize-use-trailing-return-type,-llvm-header-guard,-fuchsia-overloaded-operator,-fuchsia-multiple-inheritance,-misc-definitions-in-headers,-fuchsia-default-arguments-declarations,-fuchsia-default-arguments-calls,-google-runtime-references,-fuchsia-trailing-return
 
 test: $(TESTTARGET)
 

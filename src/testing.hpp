@@ -13,7 +13,7 @@ namespace test {
 template<typename TestcaseManager>
 class Testing : private Output, private TestcaseManager {
     template<typename T>
-    T generate(Generating<T> const & schema) {
+    auto generate(Generating<T> const & schema) {
         return schema.generate(this->generator());
     }
 

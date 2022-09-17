@@ -5,7 +5,7 @@ using namespace test;
 using namespace std;
 
 void test_standard() {    
-    uniform_distribution<int> dist{1, 10};
+    UniDist<int> dist(1,10);
     vector<int> V(1000);
     std::generate(begin(V), end(V), [gen = gen_type{12}, &dist]() mutable {return dist(gen);});
     for(auto v : V)
@@ -15,7 +15,7 @@ void test_standard() {
 }
 
 void test_single() {
-    uniform_distribution<int> dist{7,7};
+    UniDist<int> dist(7,7);
     gen_type gen{13};
     for(int i=1;i<=1000;i++)
         assert(dist(gen) == 7);

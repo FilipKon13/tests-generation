@@ -58,7 +58,16 @@ class OIOIOIManager {
         curr_test = &it.first->second;
     }
 
-    using test_info = std::pair<StreamType, gen_type>;
+    class test_info : private std::pair<StreamType, gen_type> {
+    public:
+        using std::pair<StreamType, gen_type>::pair;
+        [[nodiscard]] constexpr StreamType& stream() noexcept {
+            return this->first;
+        }
+        [[nodiscard]] constexpr gen_type& generator() noexcept {
+            return this->second;
+        }
+    };
     using index = detail::index;
     test_info * curr_test{nullptr};
     index curr_index{};
@@ -80,11 +89,11 @@ public:
     OIOIOIManager& operator=(OIOIOIManager&&) noexcept = default;
 
     [[nodiscard]] constexpr StreamType & stream() const noexcept {
-        return curr_test->first;
+        return curr_test->stream();
     }
 
     [[nodiscard]] constexpr gen_type & generator() const noexcept {
-        return curr_test->second;
+        return curr_test->generator();
     }
 
     void nextTest() {

@@ -67,7 +67,7 @@ public:
         for(int i = 2; i <= n; ++i) {
             const auto begin = std::max(1, i - range);
             const auto end = i - 1;
-            G.addEdge(i, uniform_distribution<int>{begin, end}(gen));
+            G.addEdge(i, UniDist<int>::gen(begin, end, gen));
         }
         if(permute) {
             G.permute(gen);

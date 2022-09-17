@@ -4,6 +4,7 @@
 #include "rand.hpp"
 
 #include <algorithm>
+#include <initializer_list>
 #include <ostream>
 #include <type_traits>
 #include <vector>
@@ -54,6 +55,44 @@ public:
         return s;
     }
 };
+
+template<typename Dist, typename T>
+class DistSequence : Generating<Sequence<T>> {
+    std::size_t _N;
+    Dist _dist;
+public:
+    constexpr DistSequence(std::size_t N, T begin, T end) noexcept : _N(N), _dist(begin, end) {}
+    Sequence<T> generate(gen_type & gen) const override {
+        return Sequence<T>(_N, [&]{return _dist(gen);});
+    }
+};
+
+template<typename T>
+using UniSequence = DistSequence<UniDist<T>, T>;
+
+template<typename T, unsigned long S>
+class FiniteSequence : Generating<Sequence<T>> {
+    std::size_t _N;
+    std::array<T, S> _elems;
+
+    template<std::size_t... Indx>
+    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...>) {
+        return std::array<T, S>({arr[Indx]...});
+    }
+
+public:
+    constexpr FiniteSequence(std::size_t N, std::array<T, S> const & arr) : _N(N), _elems(arr) {}
+    constexpr FiniteSequence(std::size_t N, T const (&arr)[S]) : _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {}
+    Sequence<T> generate(gen_type & gen) const override {
+        return Sequence<T>(_N, [&, dist = UniDist<std::size_t>(0, S-1)]{return _elems[dist(gen)];});
+    }
+};
+
+template<typename IntType, typename T, unsigned long S>
+FiniteSequence(IntType, std::array<T, S> const &) -> FiniteSequence<T, S>;
+
+template<typename IntType, typename T, unsigned long S>
+FiniteSequence(IntType, T const (&)[S]) -> FiniteSequence<T, S>;
 
 } /* namespace test */
 
