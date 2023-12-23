@@ -1,6 +1,6 @@
+#include "doctest.h"
 #include <testing.hpp>
 #include <sstream>
-#include "test.hpp"
 
 using namespace test;
 
@@ -28,7 +28,7 @@ struct TestGenerating : public Generating<int> {
     }
 };
 
-void test_usage_standard_types() {
+TEST_CASE("test_usage_standard_types") {
     std::stringstream s;
     Testing<TestManager> test{s};
     
@@ -38,22 +38,22 @@ void test_usage_standard_types() {
     test.nextTest();
     test.print("abc");
 
-    assert(s.str() == "next suite\n1\n2\na\nnext test\nnext test\nabc\n");
+    CHECK(s.str() == "next suite\n1\n2\na\nnext test\nnext test\nabc\n");
 }
 
-void test_generate() {
+TEST_CASE("test_generate") {
     std::stringstream s;
     Testing<TestManager> test{s};
     
     auto v1 = test(7);
     auto v2 = test(TestGenerating{});
 
-    assert(v1 == 7);
+    CHECK(v1 == 7);
     static_assert(std::is_same_v<int, decltype(v2)>);
-    assert(v2 == 3);
+    CHECK(v2 == 3);
 }
 
-void test_generating_and_standard_types() {
+TEST_CASE("test_generating_and_standard_types") {
     std::stringstream s;
     Testing<TestManager> test{s};
 
@@ -64,14 +64,5 @@ void test_generating_and_standard_types() {
     test.nextTest();
     test << 11 << TestGenerating{} << ' ' << "def";
 
-    assert(s.str() == "next suite\n2\n3\n1 3 abc\nnext test\n113 def");
-}
-
-int main() {
-    test_usage_standard_types();
-    test_generate();
-    test_generating_and_standard_types();
-
-    TEST_OK();
-    return 0;
+    CHECK(s.str() == "next suite\n2\n3\n1 3 abc\nnext test\n113 def");
 }

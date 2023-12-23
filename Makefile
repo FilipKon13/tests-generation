@@ -140,6 +140,32 @@ test_main/fast:
 .PHONY : test_main/fast
 
 #=============================================================================
+# Target rules for targets named test-unit-dist
+
+# Build rule for target.
+test-unit-dist: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test-unit-dist
+.PHONY : test-unit-dist
+
+# fast build rule for target.
+test-unit-dist/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dist.dir/build.make tests/CMakeFiles/test-unit-dist.dir/build
+.PHONY : test-unit-dist/fast
+
+#=============================================================================
+# Target rules for targets named test-unit-dump
+
+# Build rule for target.
+test-unit-dump: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test-unit-dump
+.PHONY : test-unit-dump
+
+# fast build rule for target.
+test-unit-dump/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dump.dir/build.make tests/CMakeFiles/test-unit-dump.dir/build
+.PHONY : test-unit-dump/fast
+
+#=============================================================================
 # Target rules for targets named test-unit-graph
 
 # Build rule for target.
@@ -151,6 +177,45 @@ test-unit-graph: cmake_check_build_system
 test-unit-graph/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-graph.dir/build.make tests/CMakeFiles/test-unit-graph.dir/build
 .PHONY : test-unit-graph/fast
+
+#=============================================================================
+# Target rules for targets named test-unit-manager
+
+# Build rule for target.
+test-unit-manager: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test-unit-manager
+.PHONY : test-unit-manager
+
+# fast build rule for target.
+test-unit-manager/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-manager.dir/build.make tests/CMakeFiles/test-unit-manager.dir/build
+.PHONY : test-unit-manager/fast
+
+#=============================================================================
+# Target rules for targets named test-unit-output
+
+# Build rule for target.
+test-unit-output: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test-unit-output
+.PHONY : test-unit-output
+
+# fast build rule for target.
+test-unit-output/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-output.dir/build.make tests/CMakeFiles/test-unit-output.dir/build
+.PHONY : test-unit-output/fast
+
+#=============================================================================
+# Target rules for targets named test-unit-sequence
+
+# Build rule for target.
+test-unit-sequence: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test-unit-sequence
+.PHONY : test-unit-sequence
+
+# fast build rule for target.
+test-unit-sequence/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-sequence.dir/build.make tests/CMakeFiles/test-unit-sequence.dir/build
+.PHONY : test-unit-sequence/fast
 
 #=============================================================================
 # Target rules for targets named test-unit-single_test
@@ -165,6 +230,19 @@ test-unit-single_test/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-single_test.dir/build.make tests/CMakeFiles/test-unit-single_test.dir/build
 .PHONY : test-unit-single_test/fast
 
+#=============================================================================
+# Target rules for targets named test-unit-testing
+
+# Build rule for target.
+test-unit-testing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test-unit-testing
+.PHONY : test-unit-testing
+
+# fast build rule for target.
+test-unit-testing/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-testing.dir/build.make tests/CMakeFiles/test-unit-testing.dir/build
+.PHONY : test-unit-testing/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -174,8 +252,14 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... test-unit-dist"
+	@echo "... test-unit-dump"
 	@echo "... test-unit-graph"
+	@echo "... test-unit-manager"
+	@echo "... test-unit-output"
+	@echo "... test-unit-sequence"
 	@echo "... test-unit-single_test"
+	@echo "... test-unit-testing"
 	@echo "... test_main"
 .PHONY : help
 

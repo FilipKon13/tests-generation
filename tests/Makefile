@@ -141,6 +141,34 @@ test_main/fast:
 .PHONY : test_main/fast
 
 # Convenience name for target.
+tests/CMakeFiles/test-unit-dist.dir/rule:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-dist.dir/rule
+.PHONY : tests/CMakeFiles/test-unit-dist.dir/rule
+
+# Convenience name for target.
+test-unit-dist: tests/CMakeFiles/test-unit-dist.dir/rule
+.PHONY : test-unit-dist
+
+# fast build rule for target.
+test-unit-dist/fast:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dist.dir/build.make tests/CMakeFiles/test-unit-dist.dir/build
+.PHONY : test-unit-dist/fast
+
+# Convenience name for target.
+tests/CMakeFiles/test-unit-dump.dir/rule:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-dump.dir/rule
+.PHONY : tests/CMakeFiles/test-unit-dump.dir/rule
+
+# Convenience name for target.
+test-unit-dump: tests/CMakeFiles/test-unit-dump.dir/rule
+.PHONY : test-unit-dump
+
+# fast build rule for target.
+test-unit-dump/fast:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dump.dir/build.make tests/CMakeFiles/test-unit-dump.dir/build
+.PHONY : test-unit-dump/fast
+
+# Convenience name for target.
 tests/CMakeFiles/test-unit-graph.dir/rule:
 	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-graph.dir/rule
 .PHONY : tests/CMakeFiles/test-unit-graph.dir/rule
@@ -155,6 +183,48 @@ test-unit-graph/fast:
 .PHONY : test-unit-graph/fast
 
 # Convenience name for target.
+tests/CMakeFiles/test-unit-manager.dir/rule:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-manager.dir/rule
+.PHONY : tests/CMakeFiles/test-unit-manager.dir/rule
+
+# Convenience name for target.
+test-unit-manager: tests/CMakeFiles/test-unit-manager.dir/rule
+.PHONY : test-unit-manager
+
+# fast build rule for target.
+test-unit-manager/fast:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-manager.dir/build.make tests/CMakeFiles/test-unit-manager.dir/build
+.PHONY : test-unit-manager/fast
+
+# Convenience name for target.
+tests/CMakeFiles/test-unit-output.dir/rule:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-output.dir/rule
+.PHONY : tests/CMakeFiles/test-unit-output.dir/rule
+
+# Convenience name for target.
+test-unit-output: tests/CMakeFiles/test-unit-output.dir/rule
+.PHONY : test-unit-output
+
+# fast build rule for target.
+test-unit-output/fast:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-output.dir/build.make tests/CMakeFiles/test-unit-output.dir/build
+.PHONY : test-unit-output/fast
+
+# Convenience name for target.
+tests/CMakeFiles/test-unit-sequence.dir/rule:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-sequence.dir/rule
+.PHONY : tests/CMakeFiles/test-unit-sequence.dir/rule
+
+# Convenience name for target.
+test-unit-sequence: tests/CMakeFiles/test-unit-sequence.dir/rule
+.PHONY : test-unit-sequence
+
+# fast build rule for target.
+test-unit-sequence/fast:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-sequence.dir/build.make tests/CMakeFiles/test-unit-sequence.dir/build
+.PHONY : test-unit-sequence/fast
+
+# Convenience name for target.
 tests/CMakeFiles/test-unit-single_test.dir/rule:
 	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-single_test.dir/rule
 .PHONY : tests/CMakeFiles/test-unit-single_test.dir/rule
@@ -167,6 +237,68 @@ test-unit-single_test: tests/CMakeFiles/test-unit-single_test.dir/rule
 test-unit-single_test/fast:
 	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-single_test.dir/build.make tests/CMakeFiles/test-unit-single_test.dir/build
 .PHONY : test-unit-single_test/fast
+
+# Convenience name for target.
+tests/CMakeFiles/test-unit-testing.dir/rule:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/test-unit-testing.dir/rule
+.PHONY : tests/CMakeFiles/test-unit-testing.dir/rule
+
+# Convenience name for target.
+test-unit-testing: tests/CMakeFiles/test-unit-testing.dir/rule
+.PHONY : test-unit-testing
+
+# fast build rule for target.
+test-unit-testing/fast:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-testing.dir/build.make tests/CMakeFiles/test-unit-testing.dir/build
+.PHONY : test-unit-testing/fast
+
+src/unit-dist.o: src/unit-dist.cpp.o
+.PHONY : src/unit-dist.o
+
+# target to build an object file
+src/unit-dist.cpp.o:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dist.dir/build.make tests/CMakeFiles/test-unit-dist.dir/src/unit-dist.cpp.o
+.PHONY : src/unit-dist.cpp.o
+
+src/unit-dist.i: src/unit-dist.cpp.i
+.PHONY : src/unit-dist.i
+
+# target to preprocess a source file
+src/unit-dist.cpp.i:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dist.dir/build.make tests/CMakeFiles/test-unit-dist.dir/src/unit-dist.cpp.i
+.PHONY : src/unit-dist.cpp.i
+
+src/unit-dist.s: src/unit-dist.cpp.s
+.PHONY : src/unit-dist.s
+
+# target to generate assembly for a file
+src/unit-dist.cpp.s:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dist.dir/build.make tests/CMakeFiles/test-unit-dist.dir/src/unit-dist.cpp.s
+.PHONY : src/unit-dist.cpp.s
+
+src/unit-dump.o: src/unit-dump.cpp.o
+.PHONY : src/unit-dump.o
+
+# target to build an object file
+src/unit-dump.cpp.o:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dump.dir/build.make tests/CMakeFiles/test-unit-dump.dir/src/unit-dump.cpp.o
+.PHONY : src/unit-dump.cpp.o
+
+src/unit-dump.i: src/unit-dump.cpp.i
+.PHONY : src/unit-dump.i
+
+# target to preprocess a source file
+src/unit-dump.cpp.i:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dump.dir/build.make tests/CMakeFiles/test-unit-dump.dir/src/unit-dump.cpp.i
+.PHONY : src/unit-dump.cpp.i
+
+src/unit-dump.s: src/unit-dump.cpp.s
+.PHONY : src/unit-dump.s
+
+# target to generate assembly for a file
+src/unit-dump.cpp.s:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-dump.dir/build.make tests/CMakeFiles/test-unit-dump.dir/src/unit-dump.cpp.s
+.PHONY : src/unit-dump.cpp.s
 
 src/unit-graph.o: src/unit-graph.cpp.o
 .PHONY : src/unit-graph.o
@@ -192,6 +324,78 @@ src/unit-graph.cpp.s:
 	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-graph.dir/build.make tests/CMakeFiles/test-unit-graph.dir/src/unit-graph.cpp.s
 .PHONY : src/unit-graph.cpp.s
 
+src/unit-manager.o: src/unit-manager.cpp.o
+.PHONY : src/unit-manager.o
+
+# target to build an object file
+src/unit-manager.cpp.o:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-manager.dir/build.make tests/CMakeFiles/test-unit-manager.dir/src/unit-manager.cpp.o
+.PHONY : src/unit-manager.cpp.o
+
+src/unit-manager.i: src/unit-manager.cpp.i
+.PHONY : src/unit-manager.i
+
+# target to preprocess a source file
+src/unit-manager.cpp.i:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-manager.dir/build.make tests/CMakeFiles/test-unit-manager.dir/src/unit-manager.cpp.i
+.PHONY : src/unit-manager.cpp.i
+
+src/unit-manager.s: src/unit-manager.cpp.s
+.PHONY : src/unit-manager.s
+
+# target to generate assembly for a file
+src/unit-manager.cpp.s:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-manager.dir/build.make tests/CMakeFiles/test-unit-manager.dir/src/unit-manager.cpp.s
+.PHONY : src/unit-manager.cpp.s
+
+src/unit-output.o: src/unit-output.cpp.o
+.PHONY : src/unit-output.o
+
+# target to build an object file
+src/unit-output.cpp.o:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-output.dir/build.make tests/CMakeFiles/test-unit-output.dir/src/unit-output.cpp.o
+.PHONY : src/unit-output.cpp.o
+
+src/unit-output.i: src/unit-output.cpp.i
+.PHONY : src/unit-output.i
+
+# target to preprocess a source file
+src/unit-output.cpp.i:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-output.dir/build.make tests/CMakeFiles/test-unit-output.dir/src/unit-output.cpp.i
+.PHONY : src/unit-output.cpp.i
+
+src/unit-output.s: src/unit-output.cpp.s
+.PHONY : src/unit-output.s
+
+# target to generate assembly for a file
+src/unit-output.cpp.s:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-output.dir/build.make tests/CMakeFiles/test-unit-output.dir/src/unit-output.cpp.s
+.PHONY : src/unit-output.cpp.s
+
+src/unit-sequence.o: src/unit-sequence.cpp.o
+.PHONY : src/unit-sequence.o
+
+# target to build an object file
+src/unit-sequence.cpp.o:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-sequence.dir/build.make tests/CMakeFiles/test-unit-sequence.dir/src/unit-sequence.cpp.o
+.PHONY : src/unit-sequence.cpp.o
+
+src/unit-sequence.i: src/unit-sequence.cpp.i
+.PHONY : src/unit-sequence.i
+
+# target to preprocess a source file
+src/unit-sequence.cpp.i:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-sequence.dir/build.make tests/CMakeFiles/test-unit-sequence.dir/src/unit-sequence.cpp.i
+.PHONY : src/unit-sequence.cpp.i
+
+src/unit-sequence.s: src/unit-sequence.cpp.s
+.PHONY : src/unit-sequence.s
+
+# target to generate assembly for a file
+src/unit-sequence.cpp.s:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-sequence.dir/build.make tests/CMakeFiles/test-unit-sequence.dir/src/unit-sequence.cpp.s
+.PHONY : src/unit-sequence.cpp.s
+
 src/unit-single_test.o: src/unit-single_test.cpp.o
 .PHONY : src/unit-single_test.o
 
@@ -215,6 +419,30 @@ src/unit-single_test.s: src/unit-single_test.cpp.s
 src/unit-single_test.cpp.s:
 	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-single_test.dir/build.make tests/CMakeFiles/test-unit-single_test.dir/src/unit-single_test.cpp.s
 .PHONY : src/unit-single_test.cpp.s
+
+src/unit-testing.o: src/unit-testing.cpp.o
+.PHONY : src/unit-testing.o
+
+# target to build an object file
+src/unit-testing.cpp.o:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-testing.dir/build.make tests/CMakeFiles/test-unit-testing.dir/src/unit-testing.cpp.o
+.PHONY : src/unit-testing.cpp.o
+
+src/unit-testing.i: src/unit-testing.cpp.i
+.PHONY : src/unit-testing.i
+
+# target to preprocess a source file
+src/unit-testing.cpp.i:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-testing.dir/build.make tests/CMakeFiles/test-unit-testing.dir/src/unit-testing.cpp.i
+.PHONY : src/unit-testing.cpp.i
+
+src/unit-testing.s: src/unit-testing.cpp.s
+.PHONY : src/unit-testing.s
+
+# target to generate assembly for a file
+src/unit-testing.cpp.s:
+	cd /home/filip/workspace/tests-generation && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/test-unit-testing.dir/build.make tests/CMakeFiles/test-unit-testing.dir/src/unit-testing.cpp.s
+.PHONY : src/unit-testing.cpp.s
 
 src/unit.o: src/unit.cpp.o
 .PHONY : src/unit.o
@@ -249,15 +477,39 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... test-unit-dist"
+	@echo "... test-unit-dump"
 	@echo "... test-unit-graph"
+	@echo "... test-unit-manager"
+	@echo "... test-unit-output"
+	@echo "... test-unit-sequence"
 	@echo "... test-unit-single_test"
+	@echo "... test-unit-testing"
 	@echo "... test_main"
+	@echo "... src/unit-dist.o"
+	@echo "... src/unit-dist.i"
+	@echo "... src/unit-dist.s"
+	@echo "... src/unit-dump.o"
+	@echo "... src/unit-dump.i"
+	@echo "... src/unit-dump.s"
 	@echo "... src/unit-graph.o"
 	@echo "... src/unit-graph.i"
 	@echo "... src/unit-graph.s"
+	@echo "... src/unit-manager.o"
+	@echo "... src/unit-manager.i"
+	@echo "... src/unit-manager.s"
+	@echo "... src/unit-output.o"
+	@echo "... src/unit-output.i"
+	@echo "... src/unit-output.s"
+	@echo "... src/unit-sequence.o"
+	@echo "... src/unit-sequence.i"
+	@echo "... src/unit-sequence.s"
 	@echo "... src/unit-single_test.o"
 	@echo "... src/unit-single_test.i"
 	@echo "... src/unit-single_test.s"
+	@echo "... src/unit-testing.o"
+	@echo "... src/unit-testing.i"
+	@echo "... src/unit-testing.s"
 	@echo "... src/unit.o"
 	@echo "... src/unit.i"
 	@echo "... src/unit.s"

@@ -1,9 +1,9 @@
+#include "doctest.h"
 #include <output.hpp>
 #include <sstream>
-#include "test.hpp"
 using namespace test;
 
-int main() {
+TEST_CASE("output-change-test") {
     Output out;
     std::stringstream out1{}, out2{};
 
@@ -16,9 +16,6 @@ int main() {
     out.set(out2);
     out << 15 << '\n';
 
-    assert(out1.str() == "12\n14\n");
-    assert(out2.str() == "13\n15\n");
-    
-    TEST_OK();
-    return 0;
+    CHECK(out1.str() == "12\n14\n");
+    CHECK(out2.str() == "13\n15\n");
 }

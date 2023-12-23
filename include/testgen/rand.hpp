@@ -2,6 +2,7 @@
 #define TESTGEN_RAND_HPP_
 
 #include <algorithm>
+#include <cassert>
 #include <memory>
 #include <random>
 #include <type_traits>
@@ -46,7 +47,7 @@ class xoshiro256pp {
     }
 
 public:
-    explicit xoshiro256pp(uint64_t seed) noexcept {
+    explicit xoshiro256pp(uint64_t seed = 0) noexcept {
         for(int i = 0; i < 4; i++) {
             s[i] = next_seed(seed);
         }
