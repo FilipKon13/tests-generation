@@ -2,10 +2,13 @@
 import os
 import re
 
-SRC_PATH = "src"
+# This simple script is basically limited preprocessor
+# Its task is to merge all .hpp files in SRC_PATH folder into single 'testgen.hpp' file
+
+SRC_PATH = "include/testgen"
+TARGET_PATH = "testgen.hpp"
 reg_local = re.compile(R' *#include +".+"')
 reg_normal = re.compile(R' *#include +<.+>')
-TARGET_PATH = "testgen.hpp"
 
 filemap = dict()
 includes_set = set()

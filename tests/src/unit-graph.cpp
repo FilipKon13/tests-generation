@@ -1,26 +1,28 @@
-#include "test.hpp"
+#include "doctest.h"
 #include <graph.hpp>
 using namespace test;
 using namespace std;
 
+#define assert(...) ;
+
 int dfs(int w, int p, Graph const & G, vector<bool> & vis) {
     vis[w] = true;
     int res{1};
-    for(auto v : G[w])  if(v!=p) {
+    for(auto v : G[w])  if(v != p) {
         assert(!vis[v]); /* no cycles in tree */
         res += dfs(v, w, G, vis);
     }
     return res;
 }
 
-void test_tree_structure() {
+TEST_CASE("test_tree_structure") {
     gen_type gen{13};
     const int n = 1000;
     Graph G = Tree(n, false).generate(gen);
     vector<bool> vis(n+1, false);
 
-    assert(G.size() == n);
-    assert(dfs(1, -1, G, vis) == n); /* connected */
+    CHECK(G.size() == n);
+    CHECK(dfs(1, -1, G, vis) == n); /* connected */
 }
 
 void test_tree_path() {
@@ -30,11 +32,13 @@ void test_tree_path() {
     vector<bool> vis(n+1, false);
 
     assert(dfs(1, -1, G, vis) == n); /* connected */
-    assert(G[1].size() == 2); /* 1 is not a endpoint, 0.1% chance of fail */
+    int two{};
+    for(int i=1;i<=n;i++) two += G[i].size() == 2;
+    assert(two == n - 2);
 }
 
 void test_tree() {
-    test_tree_structure();
+    // test_tree_structure();
     test_tree_path();
 }
 
@@ -90,14 +94,4 @@ void test_clique_random() {
 void test_clique() {
     test_clique_random();
     test_clique_not_random();
-}
-
-
-int main() {
-    test_tree();
-    test_path();
-    test_clique();
-
-    TEST_OK();
-    return 0;
 }

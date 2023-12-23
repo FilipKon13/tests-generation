@@ -1,0 +1,15 @@
+add_library (test_main OBJECT src/unit.cpp)
+target_include_directories(test_main PUBLIC ${PROJECT_BINARY_DIR}/include/${PROJECT_NAME})
+# target_compile_features(test_main PUBLIC cxx_std_11)
+file(GLOB files src/unit-*.cpp)
+
+foreach(file ${files})
+    cmake_path(GET file FILENAME test_name)
+    cmake_path(GET test_name STEM test_name)
+    string(PREPEND test_name "test-")
+    add_executable(${test_name} ${file})
+    target_link_libraries(${test_name} test_main)
+    add_test(NAME ${test_name} COMMAND ${test_name})
+endforeach()
+
+# add_test(NAME test_main COMMAND test_main)

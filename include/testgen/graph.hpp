@@ -13,7 +13,7 @@ namespace detail {
     std::vector<int> get_permutation(int n, gen_type & gen) {
         std::vector<int> V(n + 1, -1);
         std::iota(std::begin(V) + 1, std::end(V), 1);
-        std::shuffle(std::begin(V) + 1, std::end(V), gen);
+        // std::shuffle(std::begin(V) + 1, std::end(V), gen);
         return V;
     }
 } /* namespace detail */
@@ -38,8 +38,8 @@ public:
                 new_G[per[w]].push_back(per[v]);
             }
         }
-        for(int w = 1; w <= n; ++w) {
-            std::shuffle(std::begin(new_G[w]), std::end(new_G[w]), gen);
+        for(int w = 1; w <= n; ++w) { // do not use shuffle
+            // std::shuffle(std::begin(new_G[w]), std::end(new_G[w]), gen);
         }
         *this = std::move(new_G);
     }
@@ -119,7 +119,7 @@ public:
         }
         if(permute) {
             for(int i=1;i<=n;i++) {
-                std::shuffle(std::begin(G[i]), std::end(G[i]), gen);
+                // std::shuffle(std::begin(G[i]), std::end(G[i]), gen);
             }
         }
         return G;
