@@ -13,7 +13,7 @@ namespace detail {
     std::vector<int> get_permutation(int n, gen_type & gen) {
         std::vector<int> V(n + 1, -1);
         std::iota(std::begin(V) + 1, std::end(V), 1);
-        // std::shuffle(std::begin(V) + 1, std::end(V), gen);
+        shuffle_sequence(std::begin(V) + 1, std::end(V), gen);
         return V;
     }
 } /* namespace detail */
@@ -38,13 +38,15 @@ public:
                 new_G[per[w]].push_back(per[v]);
             }
         }
-        for(int w = 1; w <= n; ++w) { // do not use shuffle
-            // std::shuffle(std::begin(new_G[w]), std::end(new_G[w]), gen);
+        for(int w = 1; w <= n; ++w) {
+            shuffle_sequence(std::begin(new_G[w]), std::end(new_G[w]), gen);
         }
         *this = std::move(new_G);
     }
     [[nodiscard]] auto begin() {return std::begin(G);}
     [[nodiscard]] auto end() {return std::end(G);}
+    [[nodiscard]] auto begin() const {return std::cbegin(G);}
+    [[nodiscard]] auto end() const {return std::cend(G);}
     [[nodiscard]] container_t::size_type size() const {return G.size();}
 };
 static_assert(std::is_move_constructible<Graph>::value);
@@ -57,9 +59,8 @@ class Tree : public Generating<Graph> {
     bool permute;
 public:
     explicit constexpr Tree(int n, bool permute, int range) : n{n}, range{range}, permute{permute} {
-        if(n < 1 || range < 1) {
-            throw std::runtime_error("wrong parameters");
-        }
+        assert(n >= 1);
+        assert(range >= 1);
     }
     explicit constexpr Tree(int n, bool permute = true) : Tree{n, permute, n} {}
     Graph generate(gen_type & gen) const override {
@@ -81,9 +82,7 @@ class Path : public Generating<Graph> {
     bool permute;
 public:
     explicit constexpr Path(int n, bool permute = true) : n{n}, permute{permute} {
-        if(n < 1) {
-            throw std::runtime_error("wrong parameters");
-        }
+        assert(n >= 1);
     }
     Graph generate(gen_type & gen) const override {
         Graph G{static_cast<size_t>(n)};
@@ -106,9 +105,7 @@ class Clique : public Generating<Graph> {
     bool permute;
 public:
     explicit constexpr Clique(int n, bool permute = true) : n{n}, permute{permute} {
-        if(n < 1) {
-            throw std::runtime_error("wrong parameters");
-        }
+        assert(n >= 1);
     }
     Graph generate(gen_type & gen) const override {
         Graph G{static_cast<size_t>(n)};
@@ -119,7 +116,7 @@ public:
         }
         if(permute) {
             for(int i=1;i<=n;i++) {
-                // std::shuffle(std::begin(G[i]), std::end(G[i]), gen);
+                shuffle_sequence(std::begin(G[i]), std::end(G[i]), gen);
             }
         }
         return G;

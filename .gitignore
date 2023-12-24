@@ -1,0 +1,4 @@
+.*
+!.gitignore
+!.clang-tidy
+!.clang-format

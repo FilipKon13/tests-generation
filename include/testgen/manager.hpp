@@ -54,7 +54,7 @@ class OIOIOIManager {
         auto const it = cases.try_emplace(curr_index,
             std::piecewise_construct,
             std::forward_as_tuple(name),
-            std::forward_as_tuple(std::hash<std::string>{}(name)));
+            std::forward_as_tuple(source_generator.fork()));
         curr_test = &it.first->second;
     }
 
@@ -73,7 +73,7 @@ class OIOIOIManager {
     index curr_index{};
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
-
+    gen_type source_generator{TESTGEN_SEED};
 public:
 
     explicit OIOIOIManager(std::string abbr, bool ocen = false) : abbr(std::move(abbr)) {
@@ -99,7 +99,7 @@ public:
     void nextTest() {
         std::visit(combine{
             [this](TestType x)  {this->test(this->curr_index.test + 1, x);},
-            [this](unsigned x)       {this->test(this->curr_index.test + 1, x);}
+            [this](unsigned x)  {this->test(this->curr_index.test + 1, x);}
         },curr_index.suite);
     }
 

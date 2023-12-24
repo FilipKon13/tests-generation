@@ -27,9 +27,9 @@ However, we recommend cloning this repo and running tests anyway. To do this aft
 
     make test
 
-Do that to make sure that pseudorandomness works as intended. If tests fail two things are likely: current version of library depends on some implementation detail that standard left unspecified or your environment is not standard-compliant. Whatever the case is, you can try to solve this by providing your own `gen_type` type (more about it in Customization section) and running
+Do that to make sure that pseudorandomness works as intended. If tests fail two things are likely: current version of library depends on some implementation detail that standard left unspecified or your environment is not standard-compliant. Whatever the case is, you can try to bypass this problem by running
 
-    make __gen_tests
+    make gen_tests
 
 Be aware that this overwrites tests provided by the library. After that, by running
 

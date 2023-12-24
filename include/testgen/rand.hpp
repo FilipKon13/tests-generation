@@ -7,13 +7,19 @@
 #include <random>
 #include <type_traits>
 
+#define TESTGEN_SEED 0
+
 namespace test {
 
 class xoshiro256pp {
-    static inline uint64_t rotl(uint64_t x, int k) {
+public:
+    typedef uint64_t result_type;
+private:
+    static inline result_type rotl(result_type x, int k) {
         return (x << k) | (x >> (64 - k));
     }
-    uint64_t s[4];
+
+    result_type s[4];
 
     void advance() {
         auto const t = s[1] << 17;
@@ -23,9 +29,9 @@ class xoshiro256pp {
     }
 
     void jump() {
-        static constexpr uint64_t JUMP[] =
+        static constexpr result_type JUMP[] =
             { 0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c };
-        uint64_t t[4]{};
+        result_type t[4]{};
         for(int i = 0; i < 4; i++)
             for(int b = 0; b < 64; b++) {
                 if (JUMP[i] & UINT64_C(1) << b) {
@@ -39,7 +45,7 @@ class xoshiro256pp {
         std::copy(t,t+4,s);
     }
 
-    static inline uint64_t next_seed(uint64_t & x) {
+    static inline result_type next_seed(result_type & x) {
         auto z = (x += 0x9e3779b97f4a7c15);
         z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
         z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
@@ -47,13 +53,14 @@ class xoshiro256pp {
     }
 
 public:
-    explicit xoshiro256pp(uint64_t seed = 0) noexcept {
+    
+    explicit xoshiro256pp(result_type seed = 0) noexcept {
         for(int i = 0; i < 4; i++) {
             s[i] = next_seed(seed);
         }
     }
 
-    [[nodiscard]] uint64_t operator()() noexcept {
+    [[nodiscard]] result_type operator()() noexcept {
         auto const result = rotl(s[0] + s[3], 23) + s[0];
         advance();
         return result;
@@ -63,6 +70,14 @@ public:
         auto const result = *this;
         jump();
         return result; // NRVO still applies here
+    }
+
+    static constexpr result_type max() {
+        return UINT64_MAX;
+    }
+
+    static constexpr result_type min() {
+        return 0;
     }
 };
 
@@ -112,6 +127,47 @@ public:
     }
 };
 
+namespace detail {
+    template<typename T, typename Gen>
+    std::pair<T,T> generate_two(T x, T y, Gen&& gen) {
+        T v = UniDist<T>::gen(0, x*y-1, gen);
+        return {v/y, v%y};
+    }
+
+    template<typename Iter>
+    void iter_swap(Iter a, Iter b) {
+        std::swap(*a, *b);
+    }
+} /* namespace detail */
+
+
+template<typename Iter, typename Gen>
+void shuffle_sequence(Iter begin, Iter end, Gen&& gen) {
+    if(begin == end) {
+        return;
+    }
+    auto const len = end - begin;
+    typedef typename std::remove_reference_t<Gen> gen_t;
+    auto const range = gen_t::max() - gen_t::min();
+    if(range / len >= len) { // faster variant
+        auto it = begin + 1;
+        if(len % 2 == 0) {
+            detail::iter_swap(it++, begin + UniDist<decltype(len)>::gen(0, 1, gen));
+        }
+        while(it != end) {
+            auto cnt = it - begin;
+            auto p = detail::generate_two(cnt, cnt+1, gen);
+            detail::iter_swap(it++, begin + p.first);
+            detail::iter_swap(it++, begin + p.second);
+        }
+    } else { // for really big ranges
+        for(auto it = begin; ++it != end;) {
+            detail::iter_swap(it, begin + UniDist<decltype(len)>::gen(0, it - begin, gen));
+        }
+    }
+}
+
+
 
 template<typename T>
 class uniform_real_distribution {
@@ -121,40 +177,6 @@ class uniform_real_distribution {
 template<typename... T> struct combine : T... {using T::operator()...;};
 
 template<typename... T> combine(T...) -> combine<T...>; 
-
-
-namespace detail {
-    template<typename T, typename Gen>
-    std::pair<T,T> generate_two(T x, T y, Gen&& gen) {
-        T v = UniDist<T>::gen(x,y,gen);
-        return {v/x, v%x};
-    }
-} /* namespace detail */
-
-template<typename Iter, typename Gen>
-void random_permute(Iter begin, Iter end, Gen&& gen) {
-    if(begin == end) {
-        return;
-    }
-    auto const len = end - begin;
-    auto const range = Gen::max() - Gen::min();
-    if(range / len >= len) { // faster variant
-        auto it = begin + 1;
-        if(len % 2 == 0) {
-            swap(it++, begin + UniDist<decltype(len)>::gen(0, 1, gen));
-        }
-        while(it != end) {
-            auto cnt = it - begin;
-            auto p = detail::generate_two(cnt, cnt+1, gen);
-            swap(it++, begin + p.first);
-            swap(it++, begin + p.second);
-        }
-    } else { // for really big ranges
-        for(auto it = begin; ++it != end;) {
-            swap(it, begin + UniDist<decltype(len)>::gen(0, it - begin, gen));
-        }
-    }
-}
 
 } /* namespace test */
 
