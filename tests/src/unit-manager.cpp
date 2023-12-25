@@ -1,13 +1,13 @@
 #include "doctest.h"
-#include <manager.hpp>
+#include <testgen/manager.hpp>
 #include <sstream>
 using namespace test;
 using namespace std;
 
-
 struct TestStream : stringstream {
-    TestStream(string const & name) : stringstream{} {
-        static_cast<stringstream&>(*this) << name;
+    TestStream(string const & name) :
+      stringstream{} {
+        static_cast<stringstream &>(*this) << name;
     }
 };
 

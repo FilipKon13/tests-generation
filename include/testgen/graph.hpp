@@ -10,21 +10,27 @@
 namespace test {
 
 namespace detail {
-    std::vector<int> get_permutation(int n, gen_type & gen) {
-        std::vector<int> V(n + 1, -1);
-        std::iota(std::begin(V) + 1, std::end(V), 1);
-        shuffle_sequence(std::begin(V) + 1, std::end(V), gen);
-        return V;
-    }
+std::vector<int> get_permutation(int n, gen_type & gen) {
+    std::vector<int> V(n + 1, -1);
+    std::iota(std::begin(V) + 1, std::end(V), 1);
+    shuffle_sequence(std::begin(V) + 1, std::end(V), gen);
+    return V;
+}
 } /* namespace detail */
 
 class Graph {
     using container_t = std::vector<std::vector<int>>;
     container_t G;
+
 public:
-    explicit Graph(container_t::size_type n) : G{n} {}
-    [[nodiscard]] std::vector<int> & operator[](int i) {return G[i-1];}
-    [[nodiscard]] std::vector<int> const & operator[](int i) const {return G[i-1];}
+    explicit Graph(container_t::size_type n) :
+      G{n} {}
+    [[nodiscard]] std::vector<int> & operator[](int i) {
+        return G[i - 1];
+    }
+    [[nodiscard]] std::vector<int> const & operator[](int i) const {
+        return G[i - 1];
+    }
     void addEdge(int a, int b) {
         (*this)[a].push_back(b);
         (*this)[b].push_back(a);
@@ -43,11 +49,21 @@ public:
         }
         *this = std::move(new_G);
     }
-    [[nodiscard]] auto begin() {return std::begin(G);}
-    [[nodiscard]] auto end() {return std::end(G);}
-    [[nodiscard]] auto begin() const {return std::cbegin(G);}
-    [[nodiscard]] auto end() const {return std::cend(G);}
-    [[nodiscard]] container_t::size_type size() const {return G.size();}
+    [[nodiscard]] auto begin() {
+        return std::begin(G);
+    }
+    [[nodiscard]] auto end() {
+        return std::end(G);
+    }
+    [[nodiscard]] auto begin() const {
+        return std::cbegin(G);
+    }
+    [[nodiscard]] auto end() const {
+        return std::cend(G);
+    }
+    [[nodiscard]] container_t::size_type size() const {
+        return G.size();
+    }
 };
 static_assert(std::is_move_constructible<Graph>::value);
 static_assert(std::is_nothrow_move_constructible<Graph>::value);
@@ -57,12 +73,15 @@ class Tree : public Generating<Graph> {
     int n;
     int range;
     bool permute;
+
 public:
-    explicit constexpr Tree(int n, bool permute, int range) : n{n}, range{range}, permute{permute} {
+    explicit constexpr Tree(int n, bool permute, int range) :
+      n{n}, range{range}, permute{permute} {
         assert(n >= 1);
         assert(range >= 1);
     }
-    explicit constexpr Tree(int n, bool permute = true) : Tree{n, permute, n} {}
+    explicit constexpr Tree(int n, bool permute = true) :
+      Tree{n, permute, n} {}
     Graph generate(gen_type & gen) const override {
         Graph G{static_cast<size_t>(n)};
         for(int i = 2; i <= n; ++i) {
@@ -80,8 +99,10 @@ public:
 class Path : public Generating<Graph> {
     int n;
     bool permute;
+
 public:
-    explicit constexpr Path(int n, bool permute = true) : n{n}, permute{permute} {
+    explicit constexpr Path(int n, bool permute = true) :
+      n{n}, permute{permute} {
         assert(n >= 1);
     }
     Graph generate(gen_type & gen) const override {
@@ -103,19 +124,21 @@ public:
 class Clique : public Generating<Graph> {
     int n;
     bool permute;
+
 public:
-    explicit constexpr Clique(int n, bool permute = true) : n{n}, permute{permute} {
+    explicit constexpr Clique(int n, bool permute = true) :
+      n{n}, permute{permute} {
         assert(n >= 1);
     }
     Graph generate(gen_type & gen) const override {
         Graph G{static_cast<size_t>(n)};
-        for(int i=1;i<=n;i++) {
-            for(int j=i+1;j<=n;j++) {
+        for(int i = 1; i <= n; i++) {
+            for(int j = i + 1; j <= n; j++) {
                 G.addEdge(i, j);
             }
         }
         if(permute) {
-            for(int i=1;i<=n;i++) {
+            for(int i = 1; i <= n; i++) {
                 shuffle_sequence(std::begin(G[i]), std::end(G[i]), gen);
             }
         }

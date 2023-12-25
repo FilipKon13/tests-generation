@@ -10,3 +10,4 @@
 - GitHub Actions ❌
 - clang-tidy ❌
 - clang-format ❌
+- Prevent use of some standard functions ❌

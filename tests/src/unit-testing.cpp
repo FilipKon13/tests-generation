@@ -1,5 +1,5 @@
 #include "doctest.h"
-#include <testing.hpp>
+#include <testgen/testing.hpp>
 #include <sstream>
 
 using namespace test;
@@ -7,7 +7,8 @@ using namespace test;
 struct TestManager {
     std::stringstream & stream_;
     gen_type gen_{};
-    TestManager(std::stringstream & stream) : stream_{stream} {}
+    TestManager(std::stringstream & stream) :
+      stream_{stream} {}
     void nextSuite() {
         stream_ << "next suite\n";
     }
@@ -31,9 +32,9 @@ struct TestGenerating : public Generating<int> {
 TEST_CASE("test_usage_standard_types") {
     std::stringstream s;
     Testing<TestManager> test{s};
-    
+
     test.nextSuite();
-    test.print(1,2,'a');
+    test.print(1, 2, 'a');
     test.nextTest();
     test.nextTest();
     test.print("abc");
@@ -44,12 +45,12 @@ TEST_CASE("test_usage_standard_types") {
 TEST_CASE("test_generate") {
     std::stringstream s;
     Testing<TestManager> test{s};
-    
+
     auto v1 = test(7);
     auto v2 = test(TestGenerating{});
 
-    CHECK(v1 == 7);
     static_assert(std::is_same_v<int, decltype(v2)>);
+    CHECK(v1 == 7);
     CHECK(v2 == 3);
 }
 

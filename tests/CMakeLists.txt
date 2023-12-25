@@ -1,5 +1,5 @@
 add_library (test_main OBJECT src/unit.cpp)
-target_include_directories(test_main PUBLIC ${PROJECT_BINARY_DIR}/include/${PROJECT_NAME})
+target_include_directories(test_main PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # target_compile_features(test_main PUBLIC cxx_std_11)
 file(GLOB files src/unit-*.cpp)
 

@@ -1,5 +1,5 @@
 #include "doctest.h"
-#include <output.hpp>
+#include <testgen/output.hpp>
 #include <sstream>
 using namespace test;
 
