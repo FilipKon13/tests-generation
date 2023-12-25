@@ -1,43 +1,49 @@
 #ifndef TESTGEN_RAND_HPP_
 #define TESTGEN_RAND_HPP_
 
+#include "util.hpp"
+
 #include <algorithm>
-#include <cassert>
+#include <array>
 #include <memory>
 #include <random>
 #include <type_traits>
 
-#define TESTGEN_SEED 0
+constexpr uint64_t TESTGEN_SEED = 0;
 
 namespace test {
 
 class xoshiro256pp {
+    // Suppress magic number errors (a lot of that in here and that is normal for a RNG)
 public:
     typedef uint64_t result_type;
 
 private:
-    static inline result_type rotl(result_type x, int k) {
-        return (x << k) | (x >> (64 - k));
+    static inline result_type rotl(result_type x, unsigned k) {
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+        return (x << k) | (x >> (64U - k));
     }
 
-    result_type s[4];
+    std::array<result_type, 4> s{};
 
     void advance() {
-        auto const t = s[1] << 17;
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+        auto const t = s[1] << 17U;
         s[2] ^= s[0];
         s[3] ^= s[1];
         s[1] ^= s[2];
         s[0] ^= s[3];
         s[2] ^= t;
-        s[3] = rotl(s[3], 45);
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+        s[3] = rotl(s[3], 45U);
     }
 
     void jump() {
-        static constexpr result_type JUMP[] = {0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c};
-        result_type t[4]{};
-        for(int i = 0; i < 4; i++)
-            for(int b = 0; b < 64; b++) {
-                if(JUMP[i] & UINT64_C(1) << b) {
+        static constexpr std::array JUMP = {0x180ec6d33cfd0abaUL, 0xd5a61266f0c9392cUL, 0xa9582618e03fc9aaUL, 0x39abdc4529b1661cUL};
+        std::array<result_type, 4> t{};
+        for(auto jump : JUMP) {
+            for(unsigned b = 0; b < UINT64_WIDTH; b++) {
+                if((jump & UINT64_C(1) << b) != 0) {
                     t[0] ^= s[0];
                     t[1] ^= s[1];
                     t[2] ^= s[2];
@@ -45,20 +51,24 @@ private:
                 }
                 advance();
             }
-        std::copy(t, t + 4, s);
-    }
-
-    static inline result_type next_seed(result_type & x) {
-        auto z = (x += 0x9e3779b97f4a7c15);
-        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-        z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-        return z ^ (z >> 31);
+        }
+        std::copy(t.begin(), t.end(), s.begin());
     }
 
 public:
-    explicit xoshiro256pp(result_type seed = 0) noexcept {
-        for(int i = 0; i < 4; i++) {
-            s[i] = next_seed(seed);
+    explicit xoshiro256pp(result_type seed) noexcept {
+        auto next_seed = [x = seed]() mutable {
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+            auto z = (x += 0x9e3779b97f4a7c15UL);
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+            z = (z ^ (z >> 30U)) * 0xbf58476d1ce4e5b9UL;
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+            z = (z ^ (z >> 27U)) * 0x94d049bb133111ebUL;
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+            return z ^ (z >> 31U);
+        };
+        for(auto & v : s) {
+            v = next_seed();
         }
     }
 
@@ -71,7 +81,7 @@ public:
     [[nodiscard]] xoshiro256pp fork() noexcept {
         auto const result = *this;
         jump();
-        return result;    // NRVO still applies here
+        return result;
     }
 
     static constexpr result_type max() {
@@ -104,12 +114,14 @@ public:
 
 template<typename T>
 class UniDist {
+    static_assert(std::is_integral_v<T>);
+
     T _begin, _end;
 
 public:
     UniDist(T begin, T end) :
       _begin(begin), _end(end) {
-        assert(begin <= end);
+        assume(begin <= end);
     }
     template<typename Gen>
     T operator()(Gen && gen) const {
@@ -122,18 +134,20 @@ public:
             auto res = gen() % range;
             return res + begin;
         } else {
-            typedef typename std::remove_reference<Gen>::type gen_t;
+            using gen_t = std::remove_reference_t<Gen>;
             auto const urange = gen_t::max() - gen_t::min();
             auto const range = end - begin;
             return (static_cast<T>(gen()) / urange) * range + begin;
         }
     }
 };
+template<typename U, typename V>
+UniDist(U, V) -> UniDist<std::common_type_t<U, V>>;
 
 namespace detail {
 template<typename T, typename Gen>
 std::pair<T, T> generate_two(T x, T y, Gen && gen) {
-    T v = UniDist<T>::gen(0, x * y - 1, gen);
+    T v = UniDist(0, x * y - 1)(gen);
     return {v / y, v % y};
 }
 
@@ -149,12 +163,12 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
         return;
     }
     auto const len = end - begin;
-    typedef typename std::remove_reference_t<Gen> gen_t;
+    using gen_t = std::remove_reference_t<Gen>;
     auto const range = gen_t::max() - gen_t::min();
     if(range / len >= len) {    // faster variant
         auto it = begin + 1;
         if(len % 2 == 0) {
-            detail::iter_swap(it++, begin + UniDist<decltype(len)>::gen(0, 1, gen));
+            detail::iter_swap(it++, begin + UniDist(0, 1)(gen));
         }
         while(it != end) {
             auto cnt = it - begin;
@@ -164,7 +178,7 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
         }
     } else {    // for really big ranges
         for(auto it = begin; ++it != end;) {
-            detail::iter_swap(it, begin + UniDist<decltype(len)>::gen(0, it - begin, gen));
+            detail::iter_swap(it, begin + UniDist(0, std::distance(begin, it))(gen));
         }
     }
 }

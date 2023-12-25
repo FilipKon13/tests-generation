@@ -1,6 +1,6 @@
 # TODO list
 
-- Testing framework ✅ 
+- Testing framework ✅
 - Assertions for test cases
     - global ❌
     - suites ❌
@@ -8,6 +8,6 @@
 - Generate reference tests ❌
 - Provide examples and examplars ❌
 - GitHub Actions ❌
-- clang-tidy ❌
-- clang-format ❌
+- clang-tidy ✅
+- clang-format ✅
 - Prevent use of some standard functions ❌

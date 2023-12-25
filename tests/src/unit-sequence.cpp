@@ -49,13 +49,13 @@ TEST_CASE("test_generation_indx") {
 
 TEST_CASE("test_uni_sequence") {
     UniSequence<int> const seq(3, 1, 1);
-    gen_type gen{};
+    gen_type gen{0};
 
     CHECK(seq.generate(gen) == Sequence<int>({1, 1, 1}));
 }
 
 TEST_CASE("test_finite_sequence") {
-    gen_type gen{};
+    gen_type gen{0};
     SUBCASE("in-place c-style array construction") {
         FiniteSequence seq(20, (int[]){10, 20, 30});
         auto const res = seq.generate(gen);

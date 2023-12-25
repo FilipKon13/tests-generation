@@ -4,10 +4,10 @@
 #include "rand.hpp"
 
 #include <algorithm>
-#include <initializer_list>
 #include <ostream>
-#include <type_traits>
 #include <vector>
+#include <initializer_list>
+#include <type_traits>
 
 namespace test {
 
@@ -80,25 +80,22 @@ class FiniteSequence : Generating<Sequence<T>> {
     std::array<T, S> _elems;
 
     template<std::size_t... Indx>
-    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...> /* unused */) {    //NOLINT constructor from c-style-array
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
+    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...> /* unused */) {
         return std::array<T, S>({arr[Indx]...});
     }
 
 public:
     constexpr FiniteSequence(std::size_t N, std::array<T, S> const & arr) :
       _N(N), _elems(arr) {}
+
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
     constexpr FiniteSequence(std::size_t N, T const (&arr)[S]) :
-      _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {}    //NOLINT constructor from c-style-array
+      _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {}
     Sequence<T> generate(gen_type & gen) const override {
         return Sequence<T>(_N, [&, dist = UniDist<std::size_t>(0, S - 1)] { return _elems[dist(gen)]; });
     }
 };
-
-template<typename IntType, typename T, std::size_t S>
-FiniteSequence(IntType, std::array<T, S> const &) -> FiniteSequence<T, S>;
-
-template<typename IntType, typename T, std::size_t S>
-FiniteSequence(IntType, T const (&)[S]) -> FiniteSequence<T, S>;    //NOLINT constructor from c-style-array
 
 } /* namespace test */
 

@@ -1,12 +1,12 @@
-# !/usr/bin/python
 import os
 import re
+import sys
 
 # This simple script is basically limited preprocessor
 # Its task is to merge all .hpp files in SRC_PATH folder into single 'testgen.hpp' file
 
-SRC_PATH = "include/testgen"
-TARGET_PATH = "testgen.hpp"
+SRC_PATH = sys.argv[1]
+TARGET_PATH = sys.argv[2]
 reg_local = re.compile(R' *#include +".+"')
 reg_normal = re.compile(R' *#include +<.+>')
 
@@ -32,9 +32,6 @@ for root, dirs, files in os.walk(SRC_PATH):
         path = os.path.join(root, name)
         file(path, name)
 
-for file in filemap.values():
-    print(file.name, file.depen)
-
 visited = set()
 last = False
 def dfs(file : file, output):
@@ -56,6 +53,8 @@ def dfs(file : file, output):
                 output.write(line)
 
 with open(TARGET_PATH, 'w') as out:
+    out.write("#ifndef TESTGEN_HPP_\n")
+    out.write("#define TESTGEN_HPP_\n\n")
     for include in sorted(includes_set):
         out.write(include)
     out.write('\nnamespace test {\n')
@@ -63,3 +62,4 @@ with open(TARGET_PATH, 'w') as out:
         if file.name not in visited:
             dfs(file, out)
     out.write('} /* namespace test */')
+    out.write("\n\n #endif /* TESTGEN_HPP_ */\n")

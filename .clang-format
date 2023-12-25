@@ -40,10 +40,12 @@ IncludeCategories:
     Priority: -1
   - Regex:    '<testgen/'
     Priority: 1
-  - Regex:    '.*'
+  - Regex:    '"[[:alnum:].]+"'
     Priority: 2
   - Regex:    '<[[:alnum:].]+>'
     Priority: 3
+  - Regex:    '.*'
+    Priority: 4
 #IndentCaseBlocks: false
 IndentCaseLabels: true
 IndentGotoLabels: false

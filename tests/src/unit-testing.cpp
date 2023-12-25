@@ -6,7 +6,7 @@ using namespace test;
 
 struct TestManager {
     std::stringstream & stream_;
-    gen_type gen_{};
+    gen_type gen_{0};
     TestManager(std::stringstream & stream) :
       stream_{stream} {}
     void nextSuite() {

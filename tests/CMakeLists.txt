@@ -1,6 +1,5 @@
 add_library (test_main OBJECT src/unit.cpp)
 target_include_directories(test_main PUBLIC ${PROJECT_SOURCE_DIR}/include)
-# target_compile_features(test_main PUBLIC cxx_std_11)
 file(GLOB files src/unit-*.cpp)
 
 foreach(file ${files})
@@ -11,5 +10,3 @@ foreach(file ${files})
     target_link_libraries(${test_name} test_main)
     add_test(NAME ${test_name} COMMAND ${test_name})
 endforeach()
-
-# add_test(NAME test_main COMMAND test_main)

@@ -2,10 +2,11 @@
 #define TESTGEN_GRAPH_HPP_
 
 #include "rand.hpp"
+#include "util.hpp"
 
 #include <algorithm>
-#include <type_traits>
 #include <vector>
+#include <type_traits>
 
 namespace test {
 
@@ -77,8 +78,8 @@ class Tree : public Generating<Graph> {
 public:
     explicit constexpr Tree(int n, bool permute, int range) :
       n{n}, range{range}, permute{permute} {
-        assert(n >= 1);
-        assert(range >= 1);
+        assume(n >= 1);
+        assume(range >= 1);
     }
     explicit constexpr Tree(int n, bool permute = true) :
       Tree{n, permute, n} {}
@@ -103,7 +104,7 @@ class Path : public Generating<Graph> {
 public:
     explicit constexpr Path(int n, bool permute = true) :
       n{n}, permute{permute} {
-        assert(n >= 1);
+        assume(n >= 1);
     }
     Graph generate(gen_type & gen) const override {
         Graph G{static_cast<size_t>(n)};
@@ -128,7 +129,7 @@ class Clique : public Generating<Graph> {
 public:
     explicit constexpr Clique(int n, bool permute = true) :
       n{n}, permute{permute} {
-        assert(n >= 1);
+        assume(n >= 1);
     }
     Graph generate(gen_type & gen) const override {
         Graph G{static_cast<size_t>(n)};

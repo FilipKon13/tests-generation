@@ -1,0 +1,18 @@
+Checks: '*,
+        -modernize-use-trailing-return-type,
+        -fuchsia-overloaded-operator,
+        -fuchsia-trailing-return,
+        -fuchsia-multiple-inheritance,
+        -fuchsia-default-arguments-declarations,
+        -fuchsia-default-arguments-calls,
+        -google-runtime-references,
+        -llvm-header-guard,
+        -misc-definitions-in-headers,
+        -misc-non-private-member-variables-in-classes'
+
+ExtraArgs:
+    - '-std=c++17'
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: '.*testgen.*'

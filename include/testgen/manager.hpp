@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <fstream>
 #include <memory>
+#include <variant>
 #include <string_view>
 #include <unordered_map>
-#include <variant>
 
 namespace test {
 
@@ -17,8 +17,8 @@ enum TestType : int8_t { OCEN };
 
 namespace detail {
 struct index {
-    unsigned test;                             //NOLINT(misc-non-private-member-variables-in-classes)
-    std::variant<TestType, unsigned> suite;    //NOLINT(misc-non-private-member-variables-in-classes)
+    unsigned test;
+    std::variant<TestType, unsigned> suite;
 
     [[nodiscard]] constexpr bool operator==(index const & x) const {
         return test == x.test && suite == x.suite;
