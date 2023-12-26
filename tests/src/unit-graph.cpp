@@ -99,3 +99,56 @@ TEST_CASE("test_clique_random") {
         CHECK(G[i].size() == n - 1);
     }
 }
+
+TEST_CASE("test_merge") {
+    int const n = 50;
+    gen_type gen{0};
+    Graph const A = Clique(n).generate(gen);
+    Graph const B = Path(n).generate(gen);
+    SUBCASE("initializer list empty") {
+        Graph const C = merge(A, B, {});
+        for(int i = 0; i < n; ++i) {
+            CHECK(C[i].size() == n - 1);
+        }
+        CHECK(C[n].size() == 1);
+        for(int i = n + 1; i < 2 * n - 1; i++) {
+            CHECK(C[i].size() == 2);
+        }
+        CHECK(C[2 * n - 1].size() == 1);
+    }
+    SUBCASE("initializer list nonempty") {
+        Graph const C = merge(A, B, {{0, 0}, {0, 1}});
+        for(int i = 1; i < n; ++i) {
+            CHECK(C[i].size() == n - 1);
+        }
+        for(int i = n + 2; i < 2 * n - 1; ++i) {
+            CHECK(C[i].size() == 2);
+        }
+        CHECK(C[0].size() == n + 1);
+        CHECK(C[n].size() == 2);
+        CHECK(C[n + 1].size() == 3);
+    }
+    SUBCASE("vector of pair empty") {
+        Graph const C = merge(A, B, std::vector<std::pair<int, int>>{});
+        for(int i = 0; i < n; ++i) {
+            CHECK(C[i].size() == n - 1);
+        }
+        CHECK(C[n].size() == 1);
+        for(int i = n + 1; i < 2 * n - 1; i++) {
+            CHECK(C[i].size() == 2);
+        }
+        CHECK(C[2 * n - 1].size() == 1);
+    }
+    SUBCASE("vector of pair nonempty") {
+        Graph const C = merge(A, B, std::vector<std::pair<int, int>>{{0, 0}, {0, 1}});
+        for(int i = 1; i < n; ++i) {
+            CHECK(C[i].size() == n - 1);
+        }
+        for(int i = n + 2; i < 2 * n - 1; ++i) {
+            CHECK(C[i].size() == 2);
+        }
+        CHECK(C[0].size() == n + 1);
+        CHECK(C[n].size() == 2);
+        CHECK(C[n + 1].size() == 3);
+    }
+}

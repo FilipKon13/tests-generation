@@ -28,10 +28,16 @@ struct index {
 
     public:
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
-            return static_cast<size_t>((indx.test << SHIFT) ^ std::visit(combine{[]([[maybe_unused]] TestType x) { return 0U; }, [](unsigned x) {
-                                                                                     return x + 1;
-                                                                                 }},
-                                                                         indx.suite));
+            return static_cast<size_t>(
+                (indx.test << SHIFT)
+                ^ std::visit(
+                    combine{[]([[maybe_unused]] TestType x) {
+                                return 0U;
+                            },
+                            [](unsigned x) {
+                                return x + 1;
+                            }},
+                    indx.suite));
         }
     };
 };
