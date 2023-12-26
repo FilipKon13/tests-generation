@@ -5,8 +5,9 @@
 #include "util.hpp"
 
 #include <algorithm>
-#include <vector>
+#include <numeric>
 #include <type_traits>
+#include <vector>
 
 namespace test {
 

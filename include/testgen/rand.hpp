@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <memory>
-#include <random>
 #include <type_traits>
 
 constexpr uint64_t TESTGEN_SEED = 0;
@@ -162,8 +160,8 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     if(begin == end) {
         return;
     }
-    auto const len = end - begin;
     using gen_t = std::remove_reference_t<Gen>;
+    auto const len = static_cast<typename gen_t::result_type>(std::distance(begin, end));
     auto const range = gen_t::max() - gen_t::min();
     if(range / len >= len) {    // faster variant
         auto it = begin + 1;

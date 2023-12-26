@@ -7,9 +7,8 @@
 #include <fstream>
 #include <initializer_list>
 #include <iostream>
-#include <memory>
+#include <numeric>
 #include <ostream>
-#include <random>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
@@ -17,6 +16,7 @@
 #include <vector>
 
 namespace test {
+/* ==================== util.hpp ====================*/
 
 inline void assume(bool value) {
     if(!value) {
@@ -24,6 +24,8 @@ inline void assume(bool value) {
         exit(EXIT_FAILURE);
     }
 }
+
+/* ==================== rand.hpp ====================*/
 
 constexpr uint64_t TESTGEN_SEED = 0;
 
@@ -176,8 +178,8 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     if(begin == end) {
         return;
     }
-    auto const len = end - begin;
     using gen_t = std::remove_reference_t<Gen>;
+    auto const len = static_cast<typename gen_t::result_type>(std::distance(begin, end));
     auto const range = gen_t::max() - gen_t::min();
     if(range / len >= len) {    // faster variant
         auto it = begin + 1;
@@ -206,6 +208,8 @@ struct combine : T... { using T::operator()...; };
 
 template<typename... T>
 combine(T...) -> combine<T...>;
+
+/* ==================== output.hpp ====================*/
 
 class Space {
     friend std::ostream & operator<<(std::ostream & s, [[maybe_unused]] Space const & ignored) {
@@ -256,6 +260,8 @@ public:
         }
     }
 };
+
+/* ==================== testing.hpp ====================*/
 
 template<typename TestcaseManager>
 class Testing : private Output, private TestcaseManager {
@@ -309,6 +315,8 @@ public:
         return *this;
     }
 };
+
+/* ==================== manager.hpp ====================*/
 
 enum TestType : int8_t { OCEN };
 
@@ -373,10 +381,11 @@ class OIOIOIManager {
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
       abbr(std::move(abbr)) {
-        if(ocen) { test(1, OCEN); }    // pro1ocen.in
-        else {
-            test(1, 1);
-        }    // pro1a.in
+        if(ocen) {
+            test(1, OCEN);    // pro1ocen.in
+        } else {
+            test(1, 1);    // pro1a.in
+        }
     }
 
     OIOIOIManager() = delete;
@@ -432,6 +441,8 @@ public:
         change_to_new_stream(abbr + std::to_string(test) + "ocen.in");
     }
 };
+
+/* ==================== sequence.hpp ====================*/
 
 template<typename T>
 class Sequence : public std::vector<T> {
@@ -518,6 +529,8 @@ public:
         return Sequence<T>(_N, [&, dist = UniDist<std::size_t>(0, S - 1)] { return _elems[dist(gen)]; });
     }
 };
+
+/* ==================== graph.hpp ====================*/
 
 namespace detail {
 std::vector<int> get_permutation(int n, gen_type & gen) {
@@ -658,4 +671,4 @@ public:
 
 } /* namespace test */
 
- #endif /* TESTGEN_HPP_ */
+#endif /* TESTGEN_HPP_ */

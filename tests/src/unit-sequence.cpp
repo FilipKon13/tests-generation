@@ -57,7 +57,8 @@ TEST_CASE("test_uni_sequence") {
 TEST_CASE("test_finite_sequence") {
     gen_type gen{0};
     SUBCASE("in-place c-style array construction") {
-        FiniteSequence seq(20, (int[]){10, 20, 30});
+        using arr = int[3];
+        FiniteSequence seq(20, arr{10, 20, 30});
         auto const res = seq.generate(gen);
         CHECK(res.size() == size_t{20});
         for(auto v : res)

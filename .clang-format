@@ -42,7 +42,7 @@ IncludeCategories:
     Priority: 1
   - Regex:    '"[[:alnum:].]+"'
     Priority: 2
-  - Regex:    '<[[:alnum:].]+>'
+  - Regex:    '<.*>'
     Priority: 3
   - Regex:    '.*'
     Priority: 4

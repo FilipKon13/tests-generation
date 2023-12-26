@@ -2,6 +2,7 @@
 #include <testgen/rand.hpp>
 #include <algorithm>
 using namespace test;
+
 using namespace std;
 
 TEST_CASE("test_standard") {

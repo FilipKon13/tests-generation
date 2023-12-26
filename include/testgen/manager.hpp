@@ -6,10 +6,9 @@
 
 #include <algorithm>
 #include <fstream>
-#include <memory>
-#include <variant>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 
 namespace test {
 
@@ -76,10 +75,11 @@ class OIOIOIManager {
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
       abbr(std::move(abbr)) {
-        if(ocen) { test(1, OCEN); }    // pro1ocen.in
-        else {
-            test(1, 1);
-        }    // pro1a.in
+        if(ocen) {
+            test(1, OCEN);    // pro1ocen.in
+        } else {
+            test(1, 1);    // pro1a.in
+        }
     }
 
     OIOIOIManager() = delete;

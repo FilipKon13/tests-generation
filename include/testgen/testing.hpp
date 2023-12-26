@@ -4,9 +4,7 @@
 #include "output.hpp"
 #include "rand.hpp"
 
-#include <memory>
 #include <ostream>
-#include <string_view>
 
 namespace test {
 

@@ -40,6 +40,12 @@ def dfs(file : file, output):
     for v in file.depen:
         if v not in visited:
             dfs(filemap[v], output)
+    output.write("/* ")
+    output.write("=" * 20)
+    output.write(" " + file.name + " ")
+    output.write("=" * 20)
+    output.write("*/\n\n");
+    last = True
     with open(file.path, 'r') as inp:
         for line in inp:
             if line == '\n':
@@ -62,4 +68,4 @@ with open(TARGET_PATH, 'w') as out:
         if file.name not in visited:
             dfs(file, out)
     out.write('} /* namespace test */')
-    out.write("\n\n #endif /* TESTGEN_HPP_ */\n")
+    out.write("\n\n#endif /* TESTGEN_HPP_ */\n")
