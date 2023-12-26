@@ -13,9 +13,9 @@ namespace test {
 
 namespace detail {
 std::vector<int> get_permutation(int n, gen_type & gen) {
-    std::vector<int> V(n + 1, -1);
-    std::iota(std::begin(V) + 1, std::end(V), 1);
-    shuffle_sequence(std::begin(V) + 1, std::end(V), gen);
+    std::vector<int> V(n);
+    std::iota(std::begin(V), std::end(V), 0);
+    shuffle_sequence(std::begin(V), std::end(V), gen);
     return V;
 }
 } /* namespace detail */
@@ -28,25 +28,25 @@ public:
     explicit Graph(container_t::size_type n) :
       G{n} {}
     [[nodiscard]] std::vector<int> & operator[](int i) {
-        return G[i - 1];
+        return G[i];
     }
     [[nodiscard]] std::vector<int> const & operator[](int i) const {
-        return G[i - 1];
+        return G[i];
     }
     void addEdge(int a, int b) {
         (*this)[a].push_back(b);
         (*this)[b].push_back(a);
     }
     void permute(gen_type & gen) {
-        const int n = static_cast<int>(G.size());
+        const int n = G.size();
         const auto per = detail::get_permutation(n, gen);
         Graph new_G(G.size());
-        for(int w = 1; w <= n; ++w) {
+        for(int w = 0; w < n; ++w) {
             for(auto v : (*this)[w]) {
                 new_G[per[w]].push_back(per[v]);
             }
         }
-        for(int w = 1; w <= n; ++w) {
+        for(int w = 0; w < n; ++w) {
             shuffle_sequence(std::begin(new_G[w]), std::end(new_G[w]), gen);
         }
         *this = std::move(new_G);
@@ -67,32 +67,27 @@ public:
         return G.size();
     }
 };
-static_assert(std::is_move_constructible<Graph>::value);
-static_assert(std::is_nothrow_move_constructible<Graph>::value);
-static_assert(std::is_move_assignable<Graph>::value);
 
 class Tree : public Generating<Graph> {
     int n;
     int range;
-    bool permute;
 
 public:
-    explicit constexpr Tree(int n, bool permute, int range) :
-      n{n}, range{range}, permute{permute} {
+    explicit constexpr Tree(int n, int range) :
+      n{n}, range{range} {
         assume(n >= 1);
         assume(range >= 1);
     }
-    explicit constexpr Tree(int n, bool permute = true) :
-      Tree{n, permute, n} {}
+
+    explicit constexpr Tree(int n) :
+      Tree{n, n} {}
+
     Graph generate(gen_type & gen) const override {
-        Graph G{static_cast<size_t>(n)};
-        for(int i = 2; i <= n; ++i) {
-            const auto begin = std::max(1, i - range);
+        Graph G(n);
+        for(int i = 1; i < n; ++i) {
+            const auto begin = std::max(0, i - range);
             const auto end = i - 1;
             G.addEdge(i, UniDist<int>::gen(begin, end, gen));
-        }
-        if(permute) {
-            G.permute(gen);
         }
         return G;
     }
@@ -100,24 +95,16 @@ public:
 
 class Path : public Generating<Graph> {
     int n;
-    bool permute;
 
 public:
-    explicit constexpr Path(int n, bool permute = true) :
-      n{n}, permute{permute} {
+    explicit constexpr Path(int n) :
+      n{n} {
         assume(n >= 1);
     }
-    Graph generate(gen_type & gen) const override {
-        Graph G{static_cast<size_t>(n)};
-        if(permute) {
-            const auto per = detail::get_permutation(n, gen);
-            for(int w = 1; w < n; ++w) {
-                G.addEdge(per[w], per[w + 1]);
-            }
-        } else {
-            for(int w = 1; w < n; ++w) {
-                G.addEdge(w, w + 1);
-            }
+    Graph generate([[maybe_unused]] gen_type & gen) const override {
+        Graph G(n);
+        for(int w = 0; w < n - 1; ++w) {
+            G.addEdge(w, w + 1);
         }
         return G;
     }
@@ -125,23 +112,17 @@ public:
 
 class Clique : public Generating<Graph> {
     int n;
-    bool permute;
 
 public:
-    explicit constexpr Clique(int n, bool permute = true) :
-      n{n}, permute{permute} {
+    explicit constexpr Clique(int n) :
+      n{n} {
         assume(n >= 1);
     }
-    Graph generate(gen_type & gen) const override {
-        Graph G{static_cast<size_t>(n)};
-        for(int i = 1; i <= n; i++) {
-            for(int j = i + 1; j <= n; j++) {
+    Graph generate([[maybe_unused]] gen_type & gen) const override {
+        Graph G(n);
+        for(int i = 0; i < n; i++) {
+            for(int j = i + 1; j < n; j++) {
                 G.addEdge(i, j);
-            }
-        }
-        if(permute) {
-            for(int i = 1; i <= n; i++) {
-                shuffle_sequence(std::begin(G[i]), std::end(G[i]), gen);
             }
         }
         return G;
