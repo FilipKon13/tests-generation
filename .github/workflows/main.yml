@@ -7,11 +7,6 @@ on:
     branches: [ "master" ]
 
 jobs:
-  greeting:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Hello World
-        run: echo hello world
   test:
     runs-on: ubuntu-latest
     steps:
