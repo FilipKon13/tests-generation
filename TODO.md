@@ -2,12 +2,20 @@
 
 - Testing framework ✅
 - Assertions for test cases
-    - global ❌
-    - suites ❌
+    - global ✅
+    - suites ✅
+    - test ✅
 - Check stability of engine ❌
 - Generate reference tests ❌
 - Provide examples and examplars ❌
-- GitHub Actions ❌
+- GitHub Actions ✅
 - clang-tidy ✅
 - clang-format ✅
 - Prevent use of some standard functions ❌
+- Additional utilities:
+    - undirected graphs:
+        - merge ✅
+        - contract ✅
+        - identify ✅
+        - make_simple ✅
+        - printing ❌

@@ -67,3 +67,83 @@ TEST_CASE("test_generating_and_standard_types") {
 
     CHECK(s.str() == "next suite\n2\n3\n1 3 abc\nnext test\n113 def");
 }
+
+TEST_CASE("test-no-gen") {
+    struct Testcase {};
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+}
+
+TEST_CASE("test-gen") {
+    struct Testcase {
+        gen_type & gen;
+    };
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+}
+
+TEST_CASE("test-get-generator") {
+    std::stringstream s;
+    Testing<TestManager> test{s};
+    [[maybe_unused]] gen_type & gen = test.generator();
+}
+
+struct Testcase {
+    int x;
+    friend std::ostream & operator<<(std::ostream & s, Testcase const & t) {
+        return s << t.x;
+    }
+};
+
+TEST_CASE("check-assumption-empty") {
+    Testcase T{2};
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+    test << T;
+}
+
+TEST_CASE("check-assumption-ok") {
+    Testcase T{2};
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+    test.globalAssumption([](Testcase const & t) { return t.x == 2; });
+    CHECK_NOTHROW(test << T);
+}
+
+TEST_CASE("check-assumption-bad") {
+    Testcase T{2};
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+    test.globalAssumption([](Testcase const & t) { return t.x == 3; });
+    CHECK_THROWS(test << T);
+}
+
+TEST_CASE("check-assumption-change-suite") {
+    Testcase T{2};
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+    test.suiteAssumption([](Testcase const & t) { return t.x == 3; });
+    SUBCASE("next-suite") {
+        test.nextSuite();
+        CHECK_NOTHROW(test << T);
+    }
+    SUBCASE("next-test") {
+        test.nextTest();
+        CHECK_THROWS(test << T);
+    }
+}
+
+TEST_CASE("check-assumption-change-test") {
+    Testcase T{2};
+    std::stringstream s;
+    Testing<TestManager, Testcase> test{s};
+    test.testAssumption([](Testcase const & t) { return t.x == 3; });
+    SUBCASE("next-suite") {
+        test.nextSuite();
+        CHECK_NOTHROW(test << T);
+    }
+    SUBCASE("next-test") {
+        test.nextTest();
+        CHECK_NOTHROW(test << T);
+    }
+}

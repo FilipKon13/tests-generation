@@ -9,6 +9,7 @@
 #include <iostream>
 #include <numeric>
 #include <ostream>
+#include <stdexcept>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
@@ -261,64 +262,61 @@ public:
     }
 };
 
-/* ==================== testing.hpp ====================*/
+/* ==================== assumptions.hpp ====================*/
 
-template<typename TestcaseManager>
-class Testing : private Output, private TestcaseManager {
-    template<typename T>
-    auto generate(Generating<T> const & schema) {
-        return schema.generate(this->generator());
+template<typename Testcase_t>
+class AssumptionManager {
+public:
+    using assumption_t = bool (*)(Testcase_t const &);
+
+private:
+    static bool empty(Testcase_t const & /*unused*/) {
+        return true;
     }
+    assumption_t global = empty;
+    assumption_t suite = empty;
+    assumption_t test = empty;
 
 public:
-    using TestcaseManager::TestcaseManager;
-
-    Testing(const Testing &) = delete;
-    Testing(Testing &&) = delete;
-    Testing & operator=(const Testing &) = delete;
-    Testing & operator=(Testing &&) = delete;
-    ~Testing() override = default;
-
-    void nextSuite() {
-        this->TestcaseManager::nextSuite();
-        set(this->stream());
+    void setGlobal(assumption_t fun) {
+        global = fun;
     }
-
-    void nextTest() {
-        this->TestcaseManager::nextTest();
-        set(this->stream());
+    void setSuite(assumption_t fun) {
+        suite = fun;
     }
-
-    template<typename... T>
-    void test(T &&... args) {
-        this->TestcaseManager::test(std::forward<T>(args)...);
-        set(this->stream());
+    void setTest(assumption_t fun) {
+        test = fun;
     }
-
-    template<typename... T>
-    void print(T const &... args) {
-        dump_output((*this)(args)...);
+    void resetGlobal() {
+        global = empty;
     }
-
-    template<typename T>
-    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
-        if constexpr(is_generating<T>::value) {
-            return generate(t);
-        } else {
-            return t;
-        }
+    void resetSuite() {
+        suite = empty;
     }
-
-    template<typename T>
-    Testing & operator<<(const T & out) {
-        static_cast<std::ostream &>(*this) << (*this)(out);
-        return *this;
+    void resetTest() {
+        test = empty;
+    }
+    bool check(Testcase_t const & testcase) {
+        return test(testcase) && suite(testcase) && global(testcase);
     }
 };
 
+class DummyTestcase {};
+
+template<typename T, typename = void>
+struct has_gen : std::false_type {};
+
+template<typename T>
+struct has_gen<T, std::void_t<decltype(std::declval<T>().gen)>> : std::true_type {};
+
+template<class T>
+inline constexpr bool has_gen_v = has_gen<T>::value;
+
+/* ==================== testing.hpp ====================*/
+
 /* ==================== manager.hpp ====================*/
 
-enum TestType : int8_t { OCEN };
+enum TestType : uint8_t { OCEN = UINT8_MAX };
 
 namespace detail {
 struct index {
@@ -330,20 +328,11 @@ struct index {
     }
 
     class hash {
-        constexpr inline static unsigned SHIFT = 10U;
-
     public:
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
+            constexpr auto SHIFT = 10U;
             return static_cast<size_t>(
-                (indx.test << SHIFT)
-                ^ std::visit(
-                    combine{[]([[maybe_unused]] TestType x) {
-                                return 0U;
-                            },
-                            [](unsigned x) {
-                                return x + 1;
-                            }},
-                    indx.suite));
+                (indx.test << SHIFT) ^ std::visit([](auto x) { return x + 1U; }, indx.suite));
         }
     };
 };

@@ -46,8 +46,17 @@ def dfs(file : file, output):
     output.write("=" * 20)
     output.write("*/\n\n");
     last = True
+    inside_testing = False
     with open(file.path, 'r') as inp:
         for line in inp:
+            if inside_testing:
+                if line.startswith("#else"):
+                    inside_testing = False
+                continue
+            else:
+                if "TESTING" in line:
+                    inside_testing = True
+                    continue
             if line == '\n':
                 if last:
                     continue

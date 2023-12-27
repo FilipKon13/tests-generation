@@ -49,7 +49,7 @@ IncludeCategories:
 #IndentCaseBlocks: false
 IndentCaseLabels: true
 IndentGotoLabels: false
-IndentPPDirectives: BeforeHash
+IndentPPDirectives: false
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: false

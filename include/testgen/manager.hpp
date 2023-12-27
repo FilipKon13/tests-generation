@@ -5,6 +5,7 @@
 #include "testing.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <string_view>
 #include <unordered_map>
@@ -12,7 +13,7 @@
 
 namespace test {
 
-enum TestType : int8_t { OCEN };
+enum TestType : uint8_t { OCEN = UINT8_MAX };
 
 namespace detail {
 struct index {
@@ -24,20 +25,11 @@ struct index {
     }
 
     class hash {
-        constexpr inline static unsigned SHIFT = 10U;
-
     public:
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
+            constexpr auto SHIFT = 10U;
             return static_cast<size_t>(
-                (indx.test << SHIFT)
-                ^ std::visit(
-                    combine{[]([[maybe_unused]] TestType x) {
-                                return 0U;
-                            },
-                            [](unsigned x) {
-                                return x + 1;
-                            }},
-                    indx.suite));
+                (indx.test << SHIFT) ^ std::visit([](auto x) { return x + 1U; }, indx.suite));
         }
     };
 };

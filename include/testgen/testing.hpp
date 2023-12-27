@@ -1,6 +1,7 @@
 #ifndef TESTGEN_TESTING_HPP_
 #define TESTGEN_TESTING_HPP_
 
+#include "assumptions.hpp"
 #include "output.hpp"
 #include "rand.hpp"
 
@@ -8,41 +9,58 @@
 
 namespace test {
 
-template<typename TestcaseManager>
-class Testing : private Output, private TestcaseManager {
+template<typename TestcaseManager_t, typename Testcase_t = DummyTestcase, template<typename> typename AssumptionsManager_t = AssumptionManager>
+class Testing : private TestcaseManager_t {
     template<typename T>
     auto generate(Generating<T> const & schema) {
         return schema.generate(this->generator());
     }
 
+    Testcase_t update_testcase() {
+        output.set(this->stream());
+        Testcase_t T;
+        if constexpr(has_gen_v<Testcase_t>) {
+            T.gen = this->generator();
+        }
+        return T;
+    }
+
+    Output output;
+    AssumptionsManager_t<Testcase_t> assumptions;
+
 public:
-    using TestcaseManager::TestcaseManager;
+    using TestcaseManager_t::TestcaseManager_t;
 
     Testing(const Testing &) = delete;
     Testing(Testing &&) = delete;
     Testing & operator=(const Testing &) = delete;
     Testing & operator=(Testing &&) = delete;
-    ~Testing() override = default;
+    ~Testing() = default;
 
-    void nextSuite() {
-        this->TestcaseManager::nextSuite();
-        set(this->stream());
+    using TestcaseManager_t::generator;
+
+    Testcase_t nextSuite() {
+        TestcaseManager_t::nextSuite();
+        assumptions.resetSuite();
+        assumptions.resetTest();
+        return update_testcase();
     }
 
-    void nextTest() {
-        this->TestcaseManager::nextTest();
-        set(this->stream());
+    Testcase_t nextTest() {
+        TestcaseManager_t::nextTest();
+        assumptions.resetTest();
+        return update_testcase();
     }
 
     template<typename... T>
-    void test(T &&... args) {
-        this->TestcaseManager::test(std::forward<T>(args)...);
-        set(this->stream());
+    Testcase_t test(T &&... args) {
+        TestcaseManager_t::test(std::forward<T>(args)...);
+        return update_testcase();
     }
 
     template<typename... T>
     void print(T const &... args) {
-        dump_output((*this)(args)...);
+        output.dump_output((*this)(args)...);
     }
 
     template<typename T>
@@ -56,8 +74,25 @@ public:
 
     template<typename T>
     Testing & operator<<(const T & out) {
-        static_cast<std::ostream &>(*this) << (*this)(out);
+        if constexpr(std::is_same_v<T, Testcase_t>) {
+            assume(assumptions.check(out));
+        }
+        output << (*this)(out);
         return *this;
+    }
+
+    using assumption_t = typename AssumptionsManager_t<Testcase_t>::assumption_t;
+
+    void globalAssumption(assumption_t fun) {
+        assumptions.setGlobal(fun);
+    }
+
+    void suiteAssumption(assumption_t fun) {
+        assumptions.setSuite(fun);
+    }
+
+    void testAssumption(assumption_t fun) {
+        assumptions.setTest(fun);
     }
 };
 
