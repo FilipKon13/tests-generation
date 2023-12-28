@@ -18,9 +18,9 @@ bool operator==(Graph A, Graph B) {
     return equal(A.begin(), A.end(), B.begin(), B.end());
 }
 
-int dfs(int w, int p, Graph const & G, vector<bool> & vis, bool check_cycles) {
+uint dfs(uint w, uint p, Graph const & G, vector<bool> & vis, bool check_cycles) {
     vis[w] = true;
-    int res{1};
+    uint res{1};
     for(auto v : G[w]) {
         if(!vis[v]) {
             res += dfs(v, w, G, vis, check_cycles);
@@ -32,9 +32,9 @@ int dfs(int w, int p, Graph const & G, vector<bool> & vis, bool check_cycles) {
 }
 
 bool isConnected(Graph const & G, bool check_cycles = false) {
-    int n = G.size();
+    auto n = G.size();
     vector<bool> vis(n, false);
-    int sz = dfs(0,-1,G,vis,check_cycles);
+    auto sz = dfs(0, -1, G, vis, check_cycles);
     return sz == n;
 }
 
@@ -42,9 +42,8 @@ TEST_CASE("test_tree_structure") {
     int const n = 1000;
     gen_type gen{13};
     Graph const G = Tree(n).generate(gen);
-
     CHECK(G.size() == n);
-    CHECK(isConnected(G,true));
+    CHECK(isConnected(G, true));
 }
 
 TEST_CASE("test_tree_path") {
@@ -57,7 +56,7 @@ TEST_CASE("test_tree_path") {
     }
 
     CHECK(two == n - 2);
-    CHECK(isConnected(G,true));
+    CHECK(isConnected(G, true));
 }
 
 TEST_CASE("test_path_not_random") {
@@ -74,7 +73,7 @@ TEST_CASE("test_path_not_random") {
     CHECK(cnt == 2);
     CHECK(G[0].size() == 1);
     CHECK(G[n - 1].size() == 1);
-    CHECK(isConnected(G,true));
+    CHECK(isConnected(G, true));
 }
 
 TEST_CASE("test_path_random") {
@@ -90,7 +89,7 @@ TEST_CASE("test_path_random") {
         }
     }
     CHECK(cnt == 2);
-    CHECK(isConnected(G,true));
+    CHECK(isConnected(G, true));
 }
 
 TEST_CASE("test_clique_not_random") {
@@ -116,7 +115,7 @@ TEST_CASE("test_clique_random") {
 TEST_CASE("test_cycle_not_random") {
     int const n = 50;
     Graph const G = Cycle(n).generate();
-    for(int i=0;i<n;i++) {
+    for(int i = 0; i < n; i++) {
         CHECK(G[i].size() == 2);
     }
     CHECK(isConnected(G));
@@ -126,7 +125,7 @@ TEST_CASE("test_cycle_random") {
     int const n = 50;
     gen_type gen{0};
     Graph const G = Cycle(n).generate(gen);
-    for(int i=0;i<n;i++) {
+    for(int i = 0; i < n; i++) {
         CHECK(G[i].size() == 2);
     }
     CHECK(isConnected(G));
@@ -160,7 +159,7 @@ TEST_CASE("test_merge") {
         CHECK(C[n + 1].size() == 3);
     }
     SUBCASE("vector of pair empty") {
-        Graph const C = merge(A, B, vector<pair<int, int>>{});
+        Graph const C = merge(A, B, vector<pair<uint, uint>>{});
         for(int i = 0; i < n; ++i) {
             CHECK(C[i].size() == n - 1);
         }
@@ -171,7 +170,7 @@ TEST_CASE("test_merge") {
         CHECK(C[2 * n - 1].size() == 1);
     }
     SUBCASE("vector of pair nonempty") {
-        Graph const C = merge(A, B, vector<pair<int, int>>{{0, 0}, {0, 1}});
+        Graph const C = merge(A, B, vector<pair<uint, uint>>{{0, 0}, {0, 1}});
         for(int i = 1; i < n; ++i) {
             CHECK(C[i].size() == n - 1);
         }
@@ -188,12 +187,12 @@ TEST_CASE("test_remove_isolated") {
     Graph G(5);
     G.addEdge(0, 1);
     G.addEdge(3, 4);
-    G.remove_isolated();
+    G.removeIsolated();
     CHECK(G.size() == 4);
-    CHECK(G[0] == vector<int>{1});
-    CHECK(G[1] == vector<int>{0});
-    CHECK(G[2] == vector<int>{3});
-    CHECK(G[3] == vector<int>{2});
+    CHECK(G[0] == vector<uint>{1});
+    CHECK(G[1] == vector<uint>{0});
+    CHECK(G[2] == vector<uint>{3});
+    CHECK(G[3] == vector<uint>{2});
 }
 
 TEST_CASE("test_make_simple") {
@@ -201,11 +200,11 @@ TEST_CASE("test_make_simple") {
     G.addEdge(0, 0);
     G.addEdge(1, 2);
     G.addEdge(1, 2);
-    G.make_simple();
+    G.makeSimple();
     CHECK(G.size() == 5);
     CHECK(G[0].empty());
-    CHECK(G[1] == vector<int>{2});
-    CHECK(G[2] == vector<int>{1});
+    CHECK(G[1] == vector<uint>{2});
+    CHECK(G[2] == vector<uint>{1});
     CHECK(G[3].empty());
     CHECK(G[4].empty());
 }
@@ -213,7 +212,7 @@ TEST_CASE("test_make_simple") {
 TEST_CASE("test_get_edges") {
     Graph const G = Clique(5).generate();
     Graph res(5);
-    for(auto [a, b] : G.get_edges()) {
+    for(auto [a, b] : G.getEdges()) {
         res.addEdge(a, b);
     }
     CHECK(G == res);
@@ -223,7 +222,7 @@ TEST_CASE("test_contract") {
     Graph G = Clique(5).generate();
     Graph exp = merge(Clique(4).generate(), Graph(1));
     G.contract(0, 4);
-    G.make_simple();
+    G.makeSimple();
     CHECK(G == exp);
 }
 

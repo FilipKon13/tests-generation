@@ -8,7 +8,14 @@ Checks: '*,
         -google-runtime-references,
         -llvm-header-guard,
         -misc-definitions-in-headers,
-        -misc-non-private-member-variables-in-classes'
+        -misc-non-private-member-variables-in-classes,
+        -llvmlibc-*,
+        -concurrency-*,
+        -readability-identifier-length,
+        -altera-*,
+        -*-narrowing-conversions,
+        -misc-no-recursion,
+        -cppcoreguidelines-avoid-do-while'
 
 ExtraArgs:
     - '-std=c++17'
@@ -16,3 +23,34 @@ ExtraArgs:
 WarningsAsErrors: '*'
 
 HeaderFilterRegex: '.*testgen.*'
+
+CheckOptions:
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.MethodCase
+    value: camelBack
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.TemplateParameterCase
+    value: CamelCase
+  - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value: true
+  - key: hicpp-special-member-functions.AllowSoleDefaultDtor
+    value: true
+

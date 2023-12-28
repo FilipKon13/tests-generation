@@ -5,13 +5,13 @@
 
 namespace test {
 
-template<typename Testcase_t>
+template<typename TestcaseT>
 class AssumptionManager {
 public:
-    using assumption_t = bool (*)(Testcase_t const &);
+    using assumption_t = bool (*)(TestcaseT const &);
 
 private:
-    static bool empty(Testcase_t const & /*unused*/) {
+    static bool empty(TestcaseT const & /*unused*/) {
         return true;
     }
     assumption_t global = empty;
@@ -37,7 +37,7 @@ public:
     void resetTest() {
         test = empty;
     }
-    bool check(Testcase_t const & testcase) {
+    bool check(TestcaseT const & testcase) {
         return test(testcase) && suite(testcase) && global(testcase);
     }
 };
@@ -51,7 +51,7 @@ template<typename T>
 struct has_gen<T, std::void_t<decltype(std::declval<T>().gen)>> : std::true_type {};
 
 template<class T>
-inline constexpr bool has_gen_v = has_gen<T>::value;
+inline constexpr bool has_gen_v = has_gen<T>::value;    //NOLINT(readability-identifier-naming)
 
 } /* namespace test */
 

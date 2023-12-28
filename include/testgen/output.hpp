@@ -11,7 +11,7 @@ class Space {
     friend std::ostream & operator<<(std::ostream & s, [[maybe_unused]] Space const & ignored) {
         return s << ' ';
     }
-} space;
+} const SPACE;
 
 class Output : public std::ostream {
 public:
@@ -32,22 +32,22 @@ public:
     }
 
 private:
-    enum DumpState : int8_t { SPACE,
+    enum DumpState : int8_t { WAS_SPACE,
                               NON_SPACE };
 
 public:
     // no forwarding references as output needs l-value references anyway
     template<typename... Args>
-    void dump_output(Args const &... outs) {
+    void dumpOutput(Args const &... outs) {
         if constexpr(sizeof...(outs) != 0) {
-            auto state = SPACE;
+            auto state = WAS_SPACE;
             ([&] {
-                constexpr auto is_space = std::is_same_v<Args, Space>;
-                if(state == NON_SPACE && !is_space) {
+                constexpr auto IS_SPACE = std::is_same_v<Args, Space>;
+                if(state == NON_SPACE && !IS_SPACE) {
                     *this << '\n';
                 }
                 *this << outs;
-                state = is_space ? SPACE : NON_SPACE;
+                state = IS_SPACE ? WAS_SPACE : NON_SPACE;
             }(),
              ...);
             if(state == NON_SPACE) {
@@ -57,24 +57,24 @@ public:
     }
 };
 
-void printEdges(std::ostream & s, Graph const & G, int shift = 0) {
-    for(auto [a, b] : G.get_edges()) {
+void printEdges(std::ostream & s, Graph const & g, int shift = 0) {
+    for(auto [a, b] : g.getEdges()) {
         s << a + shift << ' ' << b + shift << '\n';
     }
 }
 
-void printEdgesAsTree(std::ostream & s, Graph const & G, int shift = 0) {
-    std::vector<int> par(G.size());
-    auto dfs = [&G, &par](int w, int p, auto && self) -> void {
+void printEdgesAsTree(std::ostream & s, Graph const & g, int shift = 0) {
+    std::vector<int> par(g.size());
+    auto dfs = [&g, &par](uint w, uint p, auto && self) -> void {
         par[w] = p;
-        for(auto v : G[w]) {
+        for(auto v : g[w]) {
             if(v != p) {
                 self(v, w, self);
             }
         }
     };
     dfs(0, -1, dfs);
-    for(uint i = 1; i < G.size(); i++) {
+    for(uint i = 1; i < g.size(); i++) {
         s << par[i] + shift << '\n';
     }
 }

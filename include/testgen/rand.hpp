@@ -11,10 +11,10 @@ constexpr uint64_t TESTGEN_SEED = 0;
 
 namespace test {
 
-class xoshiro256pp {
+class Xoshiro256pp {
     // Suppress magic number linter errors (a lot of that in here and that is normal for a RNG)
 public:
-    typedef uint64_t result_type;
+    using result_type = uint64_t;
 
 private:
     static inline result_type rotl(result_type x, unsigned k) {
@@ -54,7 +54,7 @@ private:
     }
 
 public:
-    explicit xoshiro256pp(result_type seed) noexcept {
+    explicit Xoshiro256pp(result_type seed) noexcept {
         auto next_seed = [x = seed]() mutable {
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
             auto z = (x += 0x9e3779b97f4a7c15UL);
@@ -76,7 +76,7 @@ public:
         return result;
     }
 
-    [[nodiscard]] xoshiro256pp fork() noexcept {
+    [[nodiscard]] Xoshiro256pp fork() noexcept {
         auto const result = *this;
         jump();
         return result;
@@ -91,7 +91,7 @@ public:
     }
 };
 
-using gen_type = xoshiro256pp;
+using gen_type = Xoshiro256pp;
 
 template<typename T>
 class GeneratorWrapper {
@@ -117,12 +117,14 @@ public:
 };
 
 template<typename T>
-struct Generating {
+class Generating {
+public:
     virtual T generate(gen_type & gen) const = 0;
+    virtual ~Generating() noexcept = default;
 };
 
 template<typename T>
-struct is_generating {
+struct is_generating {    //NOLINT(readability-identifier-naming)
 private:
     template<typename V>
     static decltype(static_cast<const Generating<V> &>(std::declval<T>()), std::true_type{})
@@ -130,23 +132,27 @@ private:
 
     static std::false_type helper(...); /* fallback */
 public:
+    //NOLINTNEXTLINE(readability-identifier-naming)
     static constexpr bool value = decltype(helper(std::declval<T>()))::value;
 };
 
 template<typename T>
-class UniDist {
-    static_assert(std::is_integral_v<T>);
+inline constexpr bool is_generating_v = is_generating<T>::value;    //NOLINT(readability-identifier-naming)
 
-    T _begin, _end;
+template<typename T>
+struct uni_dist {
+private:
+    static_assert(std::is_integral_v<T>);
+    T begin, end;
 
 public:
-    UniDist(T begin, T end) :
-      _begin(begin), _end(end) {
+    uni_dist(T begin, T end) :
+      begin(begin), end(end) {
         assume(begin <= end);
     }
     template<typename Gen>
     T operator()(Gen && gen) const {
-        return UniDist::gen(_begin, _end, std::forward<Gen>(gen));
+        return uni_dist::gen(begin, end, std::forward<Gen>(gen));
     }
     template<typename Gen>
     static T gen(T begin, T end, Gen && gen) {
@@ -163,12 +169,12 @@ public:
     }
 };
 template<typename U, typename V>
-UniDist(U, V) -> UniDist<std::common_type_t<U, V>>;
+uni_dist(U, V) -> uni_dist<std::common_type_t<U, V>>;
 
 namespace detail {
 template<typename T, typename Gen>
 std::pair<T, T> generate_two(T x, T y, Gen && gen) {
-    T v = UniDist(0, x * y - 1)(gen);
+    T v = uni_dist(0, x * y - 1)(gen);
     return {v / y, v % y};
 }
 
@@ -189,7 +195,7 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     if(range / len >= len) {    // faster variant
         auto it = begin + 1;
         if(len % 2 == 0) {
-            detail::iter_swap(it++, begin + UniDist(0, 1)(gen));
+            detail::iter_swap(it++, begin + uni_dist(0, 1)(gen));
         }
         while(it != end) {
             auto cnt = it - begin;
@@ -199,13 +205,13 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
         }
     } else {    // for really big ranges
         for(auto it = begin; ++it != end;) {
-            detail::iter_swap(it, begin + UniDist(0, std::distance(begin, it))(gen));
+            detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
         }
     }
 }
 
 template<typename T>
-class uniform_real_distribution {
+struct uniform_real_distribution {
 };
 
 template<typename... T>

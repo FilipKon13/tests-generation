@@ -24,8 +24,7 @@ struct index {
         return test == x.test && suite == x.suite;
     }
 
-    class hash {
-    public:
+    struct hash {
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
             constexpr auto SHIFT = 10U;
             return static_cast<size_t>(
@@ -37,7 +36,7 @@ struct index {
 
 template<typename StreamType = std::ofstream>
 class OIOIOIManager {
-    bool change_if_taken() {
+    bool changeIfTaken() {
         if(auto const it = cases.find(curr_index); it != cases.end()) {
             curr_test = &it->second;
             return true;
@@ -45,7 +44,7 @@ class OIOIOIManager {
         return false;
     }
 
-    void change_to_new_stream(std::string const & name) {
+    void changeToNewStream(std::string const & name) {
         auto const it = cases.try_emplace(curr_index,
                                           std::piecewise_construct,
                                           std::forward_as_tuple(name),
@@ -53,8 +52,7 @@ class OIOIOIManager {
         curr_test = &it.first->second;
     }
 
-    class test_info : private std::pair<StreamType, gen_type> {
-    public:
+    struct test_info : private std::pair<StreamType, gen_type> {
         using std::pair<StreamType, gen_type>::pair;
         [[nodiscard]] constexpr StreamType & stream() noexcept {
             return this->first;
@@ -113,22 +111,22 @@ public:
 
     void test(unsigned test, unsigned suite) {
         curr_index = {test, suite};
-        if(change_if_taken()) { return; }
+        if(changeIfTaken()) { return; }
         std::string suffix{};
         auto nr = test - 1;
-        constexpr unsigned size = 'z' - 'a' + 1;
+        constexpr unsigned SIZE = 'z' - 'a' + 1;
         do {
-            suffix += 'a' + (nr % size);
-            nr /= size;
+            suffix += 'a' + (nr % SIZE);
+            nr /= SIZE;
         } while(nr != 0);
         std::reverse(std::begin(suffix), std::end(suffix));
-        change_to_new_stream(abbr + std::to_string(suite) + suffix + ".in");
+        changeToNewStream(abbr + std::to_string(suite) + suffix + ".in");
     }
 
     void test(unsigned test, TestType ocen) {
         curr_index = {test, ocen};
-        if(change_if_taken()) { return; }
-        change_to_new_stream(abbr + std::to_string(test) + "ocen.in");
+        if(changeIfTaken()) { return; }
+        changeToNewStream(abbr + std::to_string(test) + "ocen.in");
     }
 };
 

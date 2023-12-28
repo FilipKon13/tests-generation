@@ -6,7 +6,7 @@ using namespace test;
 using namespace std;
 
 TEST_CASE("test_standard") {
-    UniDist<int> dist(1, 10);
+    uni_dist<int> dist(1, 10);
     vector<int> V(1000);
     std::generate(begin(V), end(V), [gen = gen_type{12}, &dist]() mutable { return dist(gen); });
     for(auto v : V) {
@@ -18,7 +18,7 @@ TEST_CASE("test_standard") {
 }
 
 TEST_CASE("test_single") {
-    UniDist<int> dist(7, 7);
+    uni_dist<int> dist(7, 7);
     gen_type gen{13};
     for(int i = 1; i <= 1000; i++) {
         CHECK(dist(gen) == 7);

@@ -30,10 +30,10 @@ inline void assume(bool value) {
 
 constexpr uint64_t TESTGEN_SEED = 0;
 
-class xoshiro256pp {
+class Xoshiro256pp {
     // Suppress magic number linter errors (a lot of that in here and that is normal for a RNG)
 public:
-    typedef uint64_t result_type;
+    using result_type = uint64_t;
 
 private:
     static inline result_type rotl(result_type x, unsigned k) {
@@ -73,7 +73,7 @@ private:
     }
 
 public:
-    explicit xoshiro256pp(result_type seed) noexcept {
+    explicit Xoshiro256pp(result_type seed) noexcept {
         auto next_seed = [x = seed]() mutable {
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
             auto z = (x += 0x9e3779b97f4a7c15UL);
@@ -95,7 +95,7 @@ public:
         return result;
     }
 
-    [[nodiscard]] xoshiro256pp fork() noexcept {
+    [[nodiscard]] Xoshiro256pp fork() noexcept {
         auto const result = *this;
         jump();
         return result;
@@ -110,7 +110,7 @@ public:
     }
 };
 
-using gen_type = xoshiro256pp;
+using gen_type = Xoshiro256pp;
 
 template<typename T>
 class GeneratorWrapper {
@@ -136,12 +136,14 @@ public:
 };
 
 template<typename T>
-struct Generating {
+class Generating {
+public:
     virtual T generate(gen_type & gen) const = 0;
+    virtual ~Generating() noexcept = default;
 };
 
 template<typename T>
-struct is_generating {
+struct is_generating {    //NOLINT(readability-identifier-naming)
 private:
     template<typename V>
     static decltype(static_cast<const Generating<V> &>(std::declval<T>()), std::true_type{})
@@ -149,23 +151,27 @@ private:
 
     static std::false_type helper(...); /* fallback */
 public:
+    //NOLINTNEXTLINE(readability-identifier-naming)
     static constexpr bool value = decltype(helper(std::declval<T>()))::value;
 };
 
 template<typename T>
-class UniDist {
-    static_assert(std::is_integral_v<T>);
+inline constexpr bool is_generating_v = is_generating<T>::value;    //NOLINT(readability-identifier-naming)
 
-    T _begin, _end;
+template<typename T>
+struct uni_dist {
+private:
+    static_assert(std::is_integral_v<T>);
+    T begin, end;
 
 public:
-    UniDist(T begin, T end) :
-      _begin(begin), _end(end) {
+    uni_dist(T begin, T end) :
+      begin(begin), end(end) {
         assume(begin <= end);
     }
     template<typename Gen>
     T operator()(Gen && gen) const {
-        return UniDist::gen(_begin, _end, std::forward<Gen>(gen));
+        return uni_dist::gen(begin, end, std::forward<Gen>(gen));
     }
     template<typename Gen>
     static T gen(T begin, T end, Gen && gen) {
@@ -182,12 +188,12 @@ public:
     }
 };
 template<typename U, typename V>
-UniDist(U, V) -> UniDist<std::common_type_t<U, V>>;
+uni_dist(U, V) -> uni_dist<std::common_type_t<U, V>>;
 
 namespace detail {
 template<typename T, typename Gen>
 std::pair<T, T> generate_two(T x, T y, Gen && gen) {
-    T v = UniDist(0, x * y - 1)(gen);
+    T v = uni_dist(0, x * y - 1)(gen);
     return {v / y, v % y};
 }
 
@@ -208,7 +214,7 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     if(range / len >= len) {    // faster variant
         auto it = begin + 1;
         if(len % 2 == 0) {
-            detail::iter_swap(it++, begin + UniDist(0, 1)(gen));
+            detail::iter_swap(it++, begin + uni_dist(0, 1)(gen));
         }
         while(it != end) {
             auto cnt = it - begin;
@@ -218,13 +224,13 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
         }
     } else {    // for really big ranges
         for(auto it = begin; ++it != end;) {
-            detail::iter_swap(it, begin + UniDist(0, std::distance(begin, it))(gen));
+            detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
         }
     }
 }
 
 template<typename T>
-class uniform_real_distribution {
+struct uniform_real_distribution {
 };
 
 template<typename... T>
@@ -236,48 +242,48 @@ combine(T...) -> combine<T...>;
 /* ==================== graph.hpp ====================*/
 
 namespace detail {
-std::vector<int> get_permutation(int n, gen_type & gen) {
-    std::vector<int> V(n);
-    std::iota(std::begin(V), std::end(V), 0);
+std::vector<uint> get_permutation(int n, gen_type & gen) {
+    std::vector<uint> V(n);
+    std::iota(std::begin(V), std::end(V), 0U);
     shuffle_sequence(std::begin(V), std::end(V), gen);
     return V;
 }
 } /* namespace detail */
 
 class Graph {
-    using container_t = std::vector<std::vector<int>>;
-    using edges_container_t = std::vector<std::pair<int, int>>;
-    container_t G;
+    using container_t = std::vector<std::vector<uint>>;
+    using edges_container_t = std::vector<std::pair<uint, uint>>;
+    container_t g;
 
 public:
     explicit Graph(container_t::size_type n) :
-      G{n} {}
+      g{n} {}
 
-    [[nodiscard]] std::vector<int> & operator[](int i) {
-        return G[i];
+    [[nodiscard]] std::vector<uint> & operator[](uint i) {
+        return g[i];
     }
 
-    [[nodiscard]] std::vector<int> const & operator[](int i) const {
-        return G[i];
+    [[nodiscard]] std::vector<uint> const & operator[](uint i) const {
+        return g[i];
     }
 
-    void addEdge(int a, int b) {
-        G[a].push_back(b);
+    void addEdge(uint a, uint b) {
+        g[a].push_back(b);
         if(a != b) {
-            G[b].push_back(a);
+            g[b].push_back(a);
         }
     }
 
     void permute(gen_type & gen) {
-        const int n = G.size();
-        const auto per = detail::get_permutation(n, gen);
-        Graph new_G(G.size());
-        for(int w = 0; w < n; ++w) {
+        auto const n = g.size();
+        auto const per = detail::get_permutation(n, gen);
+        Graph new_G(g.size());
+        for(uint w = 0; w < n; ++w) {
             for(auto v : (*this)[w]) {
                 new_G[per[w]].push_back(per[v]);
             }
         }
-        for(int w = 0; w < n; ++w) {
+        for(uint w = 0; w < n; ++w) {
             shuffle_sequence(std::begin(new_G[w]), std::end(new_G[w]), gen);
         }
         *this = std::move(new_G);
@@ -285,35 +291,35 @@ public:
 
     int contract(int a, int b) {
         if(a == b) { return a; }
-        for(auto v : G[b]) {
+        for(auto v : g[b]) {
             addEdge(a, v);
         }
-        G[b].clear();
-        for(auto & V : G) {
+        g[b].clear();
+        for(auto & V : g) {
             V.resize(remove(V.begin(), V.end(), b) - V.begin());
         }
         return a;
     }
 
-    void make_simple() {
-        int const n = size();
-        for(int i = 0; i < n; i++) {
+    void makeSimple() {
+        auto const n = size();
+        for(auto i = 0U; i < n; i++) {
             // remove loops
-            G[i].resize(std::remove(G[i].begin(), G[i].end(), i) - G[i].begin());
+            g[i].resize(std::remove(g[i].begin(), g[i].end(), i) - g[i].begin());
             // remove multi-edges
-            std::sort(G[i].begin(), G[i].end());
-            G[i].resize(std::unique(G[i].begin(), G[i].end()) - G[i].begin());
+            std::sort(g[i].begin(), g[i].end());
+            g[i].resize(std::unique(g[i].begin(), g[i].end()) - g[i].begin());
         }
     }
 
-    void remove_isolated() {
-        int const n = size();
+    void removeIsolated() {
+        auto const n = size();
         std::vector<int> translate(n, -1);
         container_t new_G;
-        for(int i = 0; i < n; i++) {
-            if(!G[i].empty()) {
+        for(auto i = 0U; i < n; i++) {
+            if(!g[i].empty()) {
                 translate[i] = new_G.size();
-                new_G.emplace_back(std::move(G[i]));
+                new_G.emplace_back(std::move(g[i]));
             }
         }
         for(auto & V : new_G) {
@@ -321,34 +327,34 @@ public:
                 v = translate[v];
             }
         }
-        swap(G, new_G);
+        std::swap(g, new_G);
     }
 
     [[nodiscard]] auto begin() {
-        return std::begin(G);
+        return std::begin(g);
     }
 
     [[nodiscard]] auto end() {
-        return std::end(G);
+        return std::end(g);
     }
 
     [[nodiscard]] auto begin() const {
-        return std::cbegin(G);
+        return std::cbegin(g);
     }
 
     [[nodiscard]] auto end() const {
-        return std::cend(G);
+        return std::cend(g);
     }
 
     [[nodiscard]] container_t::size_type size() const {
-        return G.size();
+        return g.size();
     }
 
-    [[nodiscard]] edges_container_t get_edges() const {
+    [[nodiscard]] edges_container_t getEdges() const {
         edges_container_t res;
-        int const n = size();
-        for(int a = 0; a < n; a++) {
-            for(auto b : G[a]) {
+        auto const n = size();
+        for(auto a = 0U; a < n; a++) {
+            for(auto b : g[a]) {
                 if(a <= b) {
                     res.emplace_back(a, b);
                 }
@@ -359,14 +365,14 @@ public:
 };
 
 template<typename List>
-Graph merge(Graph const & A, Graph const & B, List const & new_edges) {
-    int As = A.size();
-    int Bs = B.size();
+Graph merge(Graph const & ag, Graph const & bg, List const & new_edges) {
+    auto const As = ag.size();
+    auto const Bs = bg.size();
     Graph R(As + Bs);
-    for(auto [a, b] : A.get_edges()) {
+    for(auto [a, b] : ag.getEdges()) {
         R.addEdge(a, b);
     }
-    for(auto [a, b] : B.get_edges()) {
+    for(auto [a, b] : bg.getEdges()) {
         R.addEdge(As + a, As + b);
     }
     for(auto [a, b] : new_edges) {
@@ -375,61 +381,62 @@ Graph merge(Graph const & A, Graph const & B, List const & new_edges) {
     return R;
 }
 
-Graph merge(Graph const & A, Graph const & B, std::initializer_list<std::pair<int, int>> const & new_edges = {}) {
-    return merge<std::initializer_list<std::pair<int, int>>>(A, B, new_edges);
+Graph merge(Graph const & ag, Graph const & bg, std::initializer_list<std::pair<int, int>> const & new_edges = {}) {
+    return merge<std::initializer_list<std::pair<int, int>>>(ag, bg, new_edges);
 }
 
 template<typename List>
-Graph identify(Graph const & A, Graph const & B, List const & vertices) {
-    int As = A.size();
-    Graph R = merge(A, B, {});
+Graph identify(Graph const & ag, Graph const & bg, List const & vertices) {
+    auto As = ag.size();
+    Graph R = merge(ag, bg, {});
     for(auto [a, b] : vertices) {
         R.contract(a, As + b);
     }
-    R.remove_isolated();
-    R.make_simple();
+    R.removeIsolated();
+    R.makeSimple();
     return R;
 }
 
-Graph identify(Graph const & A, Graph const & B, std::initializer_list<std::pair<int, int>> const & vertices) {
-    return identify<std::initializer_list<std::pair<int, int>>>(A, B, vertices);
+Graph identify(Graph const & ag, Graph const & bg, std::initializer_list<std::pair<int, int>> const & vertices) {
+    return identify<std::initializer_list<std::pair<int, int>>>(ag, bg, vertices);
 }
 class Tree : public Generating<Graph> {
-    int n;
-    int range;
+    uint n;
+    uint range;
 
 public:
-    explicit constexpr Tree(int n, int range) :
+    //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    explicit constexpr Tree(uint n, uint range) :
       n{n}, range{range} {
-        assume(n >= 1);
-        assume(range >= 1);
+        assume(n >= 1U);
+        assume(range >= 1U);
     }
 
-    explicit constexpr Tree(int n) :
+    explicit constexpr Tree(uint n) :
       Tree{n, n} {}
 
     [[nodiscard]] Graph generate(gen_type & gen) const override {
         Graph G(n);
-        for(int i = 1; i < n; ++i) {
-            const auto begin = std::max(0, i - range);
+        for(auto i = 1U; i < n; ++i) {
+            const auto begin = static_cast<uint>(std::max(0, static_cast<int>(i) - static_cast<int>(range)));
             const auto end = i - 1;
-            G.addEdge(i, UniDist<int>::gen(begin, end, gen));
+            G.addEdge(i, uni_dist<uint>::gen(begin, end, gen));
         }
         return G;
     }
 };
 
 class Path : public Generating<Graph> {
-    int n;
+    uint n;
 
 public:
-    explicit constexpr Path(int n) :
+    explicit constexpr Path(uint n) :
       n{n} {
-        assume(n >= 1);
+        assume(n >= 1U);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int w = 0; w < n - 1; ++w) {
+        for(auto w = 0U; w < n - 1; ++w) {
             G.addEdge(w, w + 1);
         }
         return G;
@@ -442,17 +449,17 @@ public:
 };
 
 class Clique : public Generating<Graph> {
-    int n;
+    uint n;
 
 public:
-    explicit constexpr Clique(int n) :
+    explicit constexpr Clique(uint n) :
       n{n} {
-        assume(n >= 1);
+        assume(n >= 1U);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int i = 0; i < n; i++) {
-            for(int j = i + 1; j < n; j++) {
+        for(uint i = 0; i < n; i++) {
+            for(uint j = i + 1; j < n; j++) {
                 G.addEdge(i, j);
             }
         }
@@ -466,16 +473,16 @@ public:
 };
 
 class Cycle : Generating<Graph> {
-    int n;
+    uint n;
 
 public:
-    explicit constexpr Cycle(int n) :
+    explicit constexpr Cycle(uint n) :
       n{n} {
-        assume(n >= 3);
+        assume(n >= 3U);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int i = 0; i < n - 1; i++) {
+        for(auto i = 0U; i < n - 1; i++) {
             G.addEdge(i, i + 1);
         }
         G.addEdge(n - 1, 0);
@@ -494,7 +501,7 @@ class Space {
     friend std::ostream & operator<<(std::ostream & s, [[maybe_unused]] Space const & ignored) {
         return s << ' ';
     }
-} space;
+} const SPACE;
 
 class Output : public std::ostream {
 public:
@@ -515,22 +522,22 @@ public:
     }
 
 private:
-    enum DumpState : int8_t { SPACE,
+    enum DumpState : int8_t { WAS_SPACE,
                               NON_SPACE };
 
 public:
     // no forwarding references as output needs l-value references anyway
     template<typename... Args>
-    void dump_output(Args const &... outs) {
+    void dumpOutput(Args const &... outs) {
         if constexpr(sizeof...(outs) != 0) {
-            auto state = SPACE;
+            auto state = WAS_SPACE;
             ([&] {
-                constexpr auto is_space = std::is_same_v<Args, Space>;
-                if(state == NON_SPACE && !is_space) {
+                constexpr auto IS_SPACE = std::is_same_v<Args, Space>;
+                if(state == NON_SPACE && !IS_SPACE) {
                     *this << '\n';
                 }
                 *this << outs;
-                state = is_space ? SPACE : NON_SPACE;
+                state = IS_SPACE ? WAS_SPACE : NON_SPACE;
             }(),
              ...);
             if(state == NON_SPACE) {
@@ -540,37 +547,37 @@ public:
     }
 };
 
-void printEdges(std::ostream & s, Graph const & G, int shift = 0) {
-    for(auto [a, b] : G.get_edges()) {
+void printEdges(std::ostream & s, Graph const & g, int shift = 0) {
+    for(auto [a, b] : g.getEdges()) {
         s << a + shift << ' ' << b + shift << '\n';
     }
 }
 
-void printEdgesAsTree(std::ostream & s, Graph const & G, int shift = 0) {
-    std::vector<int> par(G.size());
-    auto dfs = [&G, &par](int w, int p, auto && self) -> void {
+void printEdgesAsTree(std::ostream & s, Graph const & g, int shift = 0) {
+    std::vector<int> par(g.size());
+    auto dfs = [&g, &par](uint w, uint p, auto && self) -> void {
         par[w] = p;
-        for(auto v : G[w]) {
+        for(auto v : g[w]) {
             if(v != p) {
                 self(v, w, self);
             }
         }
     };
     dfs(0, -1, dfs);
-    for(uint i = 1; i < G.size(); i++) {
+    for(uint i = 1; i < g.size(); i++) {
         s << par[i] + shift << '\n';
     }
 }
 
 /* ==================== assumptions.hpp ====================*/
 
-template<typename Testcase_t>
+template<typename TestcaseT>
 class AssumptionManager {
 public:
-    using assumption_t = bool (*)(Testcase_t const &);
+    using assumption_t = bool (*)(TestcaseT const &);
 
 private:
-    static bool empty(Testcase_t const & /*unused*/) {
+    static bool empty(TestcaseT const & /*unused*/) {
         return true;
     }
     assumption_t global = empty;
@@ -596,7 +603,7 @@ public:
     void resetTest() {
         test = empty;
     }
-    bool check(Testcase_t const & testcase) {
+    bool check(TestcaseT const & testcase) {
         return test(testcase) && suite(testcase) && global(testcase);
     }
 };
@@ -610,9 +617,103 @@ template<typename T>
 struct has_gen<T, std::void_t<decltype(std::declval<T>().gen)>> : std::true_type {};
 
 template<class T>
-inline constexpr bool has_gen_v = has_gen<T>::value;
+inline constexpr bool has_gen_v = has_gen<T>::value;    //NOLINT(readability-identifier-naming)
 
 /* ==================== testing.hpp ====================*/
+
+template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
+class Testing : private TestcaseManagerT {
+    template<typename T>
+    auto generate(Generating<T> const & schema) {
+        return schema.generate(TestcaseManagerT::generator());
+    }
+
+    TestcaseT updateTestcase() {
+        output.set(this->stream());
+        TestcaseT T;
+        if constexpr(has_gen_v<TestcaseT>) {
+            T.gen = TestcaseManagerT::generator();
+        }
+        return T;
+    }
+
+    Output output;
+    AssumptionsManagerT<TestcaseT> assumptions;
+
+public:
+    using TestcaseManagerT::TestcaseManagerT;
+
+    Testing(const Testing &) = delete;
+    Testing(Testing &&) = delete;
+    Testing & operator=(const Testing &) = delete;
+    Testing & operator=(Testing &&) = delete;
+    ~Testing() = default;
+
+    GeneratorWrapper<gen_type> generator() {
+        return GeneratorWrapper<gen_type>{TestcaseManagerT::generator()};
+    }
+
+    TestcaseT nextSuite() {
+        TestcaseManagerT::nextSuite();
+        assumptions.resetSuite();
+        assumptions.resetTest();
+        return updateTestcase();
+    }
+
+    TestcaseT nextTest() {
+        TestcaseManagerT::nextTest();
+        assumptions.resetTest();
+        return updateTestcase();
+    }
+
+    template<typename... T>
+    TestcaseT test(T &&... args) {
+        TestcaseManagerT::test(std::forward<T>(args)...);
+        return updateTestcase();
+    }
+
+    template<typename... T>
+    void print(T const &... args) {
+        output.dumpOutput((*this)(args)...);
+    }
+
+    template<typename T>
+    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
+        if constexpr(is_generating<T>::value) {
+            return generate(t);
+        } else {
+            return t;
+        }
+    }
+
+    template<typename T>
+    Testing & operator<<(const T & out) {
+        if constexpr(std::is_same_v<T, TestcaseT>) {
+            assume(assumptions.check(out));
+        }
+        output << (*this)(out);
+        return *this;
+    }
+
+    using assumption_t = typename AssumptionsManagerT<TestcaseT>::assumption_t;
+
+    void globalAssumption(assumption_t fun) {
+        assumptions.setGlobal(fun);
+    }
+
+    void suiteAssumption(assumption_t fun) {
+        assumptions.setSuite(fun);
+    }
+
+    void testAssumption(assumption_t fun) {
+        assumptions.setTest(fun);
+    }
+};
+
+class TestcaseBase {
+public:
+    GeneratorWrapper<gen_type> gen;
+};
 
 /* ==================== manager.hpp ====================*/
 
@@ -627,8 +728,7 @@ struct index {
         return test == x.test && suite == x.suite;
     }
 
-    class hash {
-    public:
+    struct hash {
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
             constexpr auto SHIFT = 10U;
             return static_cast<size_t>(
@@ -640,7 +740,7 @@ struct index {
 
 template<typename StreamType = std::ofstream>
 class OIOIOIManager {
-    bool change_if_taken() {
+    bool changeIfTaken() {
         if(auto const it = cases.find(curr_index); it != cases.end()) {
             curr_test = &it->second;
             return true;
@@ -648,7 +748,7 @@ class OIOIOIManager {
         return false;
     }
 
-    void change_to_new_stream(std::string const & name) {
+    void changeToNewStream(std::string const & name) {
         auto const it = cases.try_emplace(curr_index,
                                           std::piecewise_construct,
                                           std::forward_as_tuple(name),
@@ -656,8 +756,7 @@ class OIOIOIManager {
         curr_test = &it.first->second;
     }
 
-    class test_info : private std::pair<StreamType, gen_type> {
-    public:
+    struct test_info : private std::pair<StreamType, gen_type> {
         using std::pair<StreamType, gen_type>::pair;
         [[nodiscard]] constexpr StreamType & stream() noexcept {
             return this->first;
@@ -716,22 +815,22 @@ public:
 
     void test(unsigned test, unsigned suite) {
         curr_index = {test, suite};
-        if(change_if_taken()) { return; }
+        if(changeIfTaken()) { return; }
         std::string suffix{};
         auto nr = test - 1;
-        constexpr unsigned size = 'z' - 'a' + 1;
+        constexpr unsigned SIZE = 'z' - 'a' + 1;
         do {
-            suffix += 'a' + (nr % size);
-            nr /= size;
+            suffix += 'a' + (nr % SIZE);
+            nr /= SIZE;
         } while(nr != 0);
         std::reverse(std::begin(suffix), std::end(suffix));
-        change_to_new_stream(abbr + std::to_string(suite) + suffix + ".in");
+        changeToNewStream(abbr + std::to_string(suite) + suffix + ".in");
     }
 
     void test(unsigned test, TestType ocen) {
         curr_index = {test, ocen};
-        if(change_if_taken()) { return; }
-        change_to_new_stream(abbr + std::to_string(test) + "ocen.in");
+        if(changeIfTaken()) { return; }
+        changeToNewStream(abbr + std::to_string(test) + "ocen.in");
     }
 };
 
@@ -786,24 +885,24 @@ public:
 
 template<typename Dist, typename T>
 class DistSequence : Generating<Sequence<T>> {
-    std::size_t _N;
-    Dist _dist;
+    std::size_t n;
+    Dist dist;
 
 public:
-    constexpr DistSequence(std::size_t N, T begin, T end) noexcept :
-      _N(N), _dist(begin, end) {}
+    constexpr DistSequence(std::size_t n, T begin, T end) noexcept :
+      n(n), dist(begin, end) {}
     Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(_N, [&] { return _dist(gen); });
+        return Sequence<T>(n, [&] { return dist(gen); });
     }
 };
 
 template<typename T>
-using UniSequence = DistSequence<UniDist<T>, T>;
+using UniSequence = DistSequence<uni_dist<T>, T>;
 
 template<typename T, std::size_t S>
 class FiniteSequence : Generating<Sequence<T>> {
-    std::size_t _N;
-    std::array<T, S> _elems;
+    std::size_t n;
+    std::array<T, S> elems;
 
     template<std::size_t... Indx>
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
@@ -812,14 +911,14 @@ class FiniteSequence : Generating<Sequence<T>> {
     }
 
 public:
-    constexpr FiniteSequence(std::size_t N, std::array<T, S> const & arr) :
-      _N(N), _elems(arr) {}
+    constexpr FiniteSequence(std::size_t n, std::array<T, S> const & arr) :
+      n(n), elems(arr) {}
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
-    constexpr FiniteSequence(std::size_t N, T const (&arr)[S]) :
-      _N(N), _elems(construct(arr, std::make_index_sequence<S>{})) {}
+    constexpr FiniteSequence(std::size_t n, T const (&arr)[S]) :
+      n(n), elems(construct(arr, std::make_index_sequence<S>{})) {}
     Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(_N, [&, dist = UniDist<std::size_t>(0, S - 1)] { return _elems[dist(gen)]; });
+        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems[dist(gen)]; });
     }
 };
 

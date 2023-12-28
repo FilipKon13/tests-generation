@@ -18,4 +18,5 @@
         - contract ✅
         - identify ✅
         - make_simple ✅
-        - printing ❌
+        - printing ✅
+- Naming convention with clang-tidy ✅

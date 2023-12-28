@@ -7,7 +7,7 @@ TEST_CASE("test_empty") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dump_output();
+    out.dumpOutput();
 
     CHECK(stream.str() == "");
 }
@@ -16,7 +16,7 @@ TEST_CASE("test_single_int") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dump_output(1);
+    out.dumpOutput(1);
 
     CHECK(stream.str() == "1\n");
 }
@@ -25,7 +25,7 @@ TEST_CASE("test_single_space") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dump_output(space);
+    out.dumpOutput(SPACE);
 
     CHECK(stream.str() == " ");
 }
@@ -34,7 +34,7 @@ TEST_CASE("test_multiple_no_space") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dump_output(1, "22", std::string("333"));
+    out.dumpOutput(1, "22", std::string("333"));
 
     CHECK(stream.str() == "1\n22\n333\n");
 }
@@ -43,7 +43,7 @@ TEST_CASE("test_multiple_space") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dump_output(1, space, "22", space, std::string("333"));
+    out.dumpOutput(1, SPACE, "22", SPACE, std::string("333"));
 
     CHECK(stream.str() == "1 22 333\n");
 }
@@ -52,7 +52,7 @@ TEST_CASE("test_space_at_end") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dump_output(1, space, "22", std::string("333"), space);
+    out.dumpOutput(1, SPACE, "22", std::string("333"), SPACE);
 
     CHECK(stream.str() == "1 22\n333 ");
 }
@@ -91,9 +91,9 @@ TEST_CASE("test-print-graph-shift") {
 TEST_CASE("test-print-tree") {
     std::stringstream out{};
     Graph G(4);
-    G.addEdge(0,1);
-    G.addEdge(0,2);
-    G.addEdge(0,3);
+    G.addEdge(0, 1);
+    G.addEdge(0, 2);
+    G.addEdge(0, 3);
     printEdgesAsTree(out, G);
     CHECK(out.str() == "0\n0\n0\n");
 }
@@ -101,10 +101,9 @@ TEST_CASE("test-print-tree") {
 TEST_CASE("test-print-tree-shift") {
     std::stringstream out{};
     Graph G(4);
-    G.addEdge(0,1);
-    G.addEdge(0,2);
-    G.addEdge(0,3);
+    G.addEdge(0, 1);
+    G.addEdge(0, 2);
+    G.addEdge(0, 3);
     printEdgesAsTree(out, G, 1);
     CHECK(out.str() == "1\n1\n1\n");
 }
-

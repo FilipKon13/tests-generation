@@ -1,7 +1,7 @@
 #ifndef TESTGEN_UTIL_HPP_
 #define TESTGEN_UTIL_HPP_
 
-#ifdef TESTING
+#ifdef TESTRUN
 
 #include <stdexcept>
 inline void assume(bool value) {

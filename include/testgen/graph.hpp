@@ -12,48 +12,48 @@
 namespace test {
 
 namespace detail {
-std::vector<int> get_permutation(int n, gen_type & gen) {
-    std::vector<int> V(n);
-    std::iota(std::begin(V), std::end(V), 0);
+std::vector<uint> get_permutation(int n, gen_type & gen) {
+    std::vector<uint> V(n);
+    std::iota(std::begin(V), std::end(V), 0U);
     shuffle_sequence(std::begin(V), std::end(V), gen);
     return V;
 }
 } /* namespace detail */
 
 class Graph {
-    using container_t = std::vector<std::vector<int>>;
-    using edges_container_t = std::vector<std::pair<int, int>>;
-    container_t G;
+    using container_t = std::vector<std::vector<uint>>;
+    using edges_container_t = std::vector<std::pair<uint, uint>>;
+    container_t g;
 
 public:
     explicit Graph(container_t::size_type n) :
-      G{n} {}
+      g{n} {}
 
-    [[nodiscard]] std::vector<int> & operator[](int i) {
-        return G[i];
+    [[nodiscard]] std::vector<uint> & operator[](uint i) {
+        return g[i];
     }
 
-    [[nodiscard]] std::vector<int> const & operator[](int i) const {
-        return G[i];
+    [[nodiscard]] std::vector<uint> const & operator[](uint i) const {
+        return g[i];
     }
 
-    void addEdge(int a, int b) {
-        G[a].push_back(b);
+    void addEdge(uint a, uint b) {
+        g[a].push_back(b);
         if(a != b) {
-            G[b].push_back(a);
+            g[b].push_back(a);
         }
     }
 
     void permute(gen_type & gen) {
-        const int n = G.size();
-        const auto per = detail::get_permutation(n, gen);
-        Graph new_G(G.size());
-        for(int w = 0; w < n; ++w) {
+        auto const n = g.size();
+        auto const per = detail::get_permutation(n, gen);
+        Graph new_G(g.size());
+        for(uint w = 0; w < n; ++w) {
             for(auto v : (*this)[w]) {
                 new_G[per[w]].push_back(per[v]);
             }
         }
-        for(int w = 0; w < n; ++w) {
+        for(uint w = 0; w < n; ++w) {
             shuffle_sequence(std::begin(new_G[w]), std::end(new_G[w]), gen);
         }
         *this = std::move(new_G);
@@ -61,35 +61,35 @@ public:
 
     int contract(int a, int b) {
         if(a == b) { return a; }
-        for(auto v : G[b]) {
+        for(auto v : g[b]) {
             addEdge(a, v);
         }
-        G[b].clear();
-        for(auto & V : G) {
+        g[b].clear();
+        for(auto & V : g) {
             V.resize(remove(V.begin(), V.end(), b) - V.begin());
         }
         return a;
     }
 
-    void make_simple() {
-        int const n = size();
-        for(int i = 0; i < n; i++) {
+    void makeSimple() {
+        auto const n = size();
+        for(auto i = 0U; i < n; i++) {
             // remove loops
-            G[i].resize(std::remove(G[i].begin(), G[i].end(), i) - G[i].begin());
+            g[i].resize(std::remove(g[i].begin(), g[i].end(), i) - g[i].begin());
             // remove multi-edges
-            std::sort(G[i].begin(), G[i].end());
-            G[i].resize(std::unique(G[i].begin(), G[i].end()) - G[i].begin());
+            std::sort(g[i].begin(), g[i].end());
+            g[i].resize(std::unique(g[i].begin(), g[i].end()) - g[i].begin());
         }
     }
 
-    void remove_isolated() {
-        int const n = size();
+    void removeIsolated() {
+        auto const n = size();
         std::vector<int> translate(n, -1);
         container_t new_G;
-        for(int i = 0; i < n; i++) {
-            if(!G[i].empty()) {
+        for(auto i = 0U; i < n; i++) {
+            if(!g[i].empty()) {
                 translate[i] = new_G.size();
-                new_G.emplace_back(std::move(G[i]));
+                new_G.emplace_back(std::move(g[i]));
             }
         }
         for(auto & V : new_G) {
@@ -97,34 +97,34 @@ public:
                 v = translate[v];
             }
         }
-        swap(G, new_G);
+        std::swap(g, new_G);
     }
 
     [[nodiscard]] auto begin() {
-        return std::begin(G);
+        return std::begin(g);
     }
 
     [[nodiscard]] auto end() {
-        return std::end(G);
+        return std::end(g);
     }
 
     [[nodiscard]] auto begin() const {
-        return std::cbegin(G);
+        return std::cbegin(g);
     }
 
     [[nodiscard]] auto end() const {
-        return std::cend(G);
+        return std::cend(g);
     }
 
     [[nodiscard]] container_t::size_type size() const {
-        return G.size();
+        return g.size();
     }
 
-    [[nodiscard]] edges_container_t get_edges() const {
+    [[nodiscard]] edges_container_t getEdges() const {
         edges_container_t res;
-        int const n = size();
-        for(int a = 0; a < n; a++) {
-            for(auto b : G[a]) {
+        auto const n = size();
+        for(auto a = 0U; a < n; a++) {
+            for(auto b : g[a]) {
                 if(a <= b) {
                     res.emplace_back(a, b);
                 }
@@ -135,14 +135,14 @@ public:
 };
 
 template<typename List>
-Graph merge(Graph const & A, Graph const & B, List const & new_edges) {
-    int As = A.size();
-    int Bs = B.size();
+Graph merge(Graph const & ag, Graph const & bg, List const & new_edges) {
+    auto const As = ag.size();
+    auto const Bs = bg.size();
     Graph R(As + Bs);
-    for(auto [a, b] : A.get_edges()) {
+    for(auto [a, b] : ag.getEdges()) {
         R.addEdge(a, b);
     }
-    for(auto [a, b] : B.get_edges()) {
+    for(auto [a, b] : bg.getEdges()) {
         R.addEdge(As + a, As + b);
     }
     for(auto [a, b] : new_edges) {
@@ -151,61 +151,62 @@ Graph merge(Graph const & A, Graph const & B, List const & new_edges) {
     return R;
 }
 
-Graph merge(Graph const & A, Graph const & B, std::initializer_list<std::pair<int, int>> const & new_edges = {}) {
-    return merge<std::initializer_list<std::pair<int, int>>>(A, B, new_edges);
+Graph merge(Graph const & ag, Graph const & bg, std::initializer_list<std::pair<int, int>> const & new_edges = {}) {
+    return merge<std::initializer_list<std::pair<int, int>>>(ag, bg, new_edges);
 }
 
 template<typename List>
-Graph identify(Graph const & A, Graph const & B, List const & vertices) {
-    int As = A.size();
-    Graph R = merge(A, B, {});
+Graph identify(Graph const & ag, Graph const & bg, List const & vertices) {
+    auto As = ag.size();
+    Graph R = merge(ag, bg, {});
     for(auto [a, b] : vertices) {
         R.contract(a, As + b);
     }
-    R.remove_isolated();
-    R.make_simple();
+    R.removeIsolated();
+    R.makeSimple();
     return R;
 }
 
-Graph identify(Graph const & A, Graph const & B, std::initializer_list<std::pair<int, int>> const & vertices) {
-    return identify<std::initializer_list<std::pair<int, int>>>(A, B, vertices);
+Graph identify(Graph const & ag, Graph const & bg, std::initializer_list<std::pair<int, int>> const & vertices) {
+    return identify<std::initializer_list<std::pair<int, int>>>(ag, bg, vertices);
 }
 class Tree : public Generating<Graph> {
-    int n;
-    int range;
+    uint n;
+    uint range;
 
 public:
-    explicit constexpr Tree(int n, int range) :
+    //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    explicit constexpr Tree(uint n, uint range) :
       n{n}, range{range} {
-        assume(n >= 1);
-        assume(range >= 1);
+        assume(n >= 1U);
+        assume(range >= 1U);
     }
 
-    explicit constexpr Tree(int n) :
+    explicit constexpr Tree(uint n) :
       Tree{n, n} {}
 
     [[nodiscard]] Graph generate(gen_type & gen) const override {
         Graph G(n);
-        for(int i = 1; i < n; ++i) {
-            const auto begin = std::max(0, i - range);
+        for(auto i = 1U; i < n; ++i) {
+            const auto begin = static_cast<uint>(std::max(0, static_cast<int>(i) - static_cast<int>(range)));
             const auto end = i - 1;
-            G.addEdge(i, UniDist<int>::gen(begin, end, gen));
+            G.addEdge(i, uni_dist<uint>::gen(begin, end, gen));
         }
         return G;
     }
 };
 
 class Path : public Generating<Graph> {
-    int n;
+    uint n;
 
 public:
-    explicit constexpr Path(int n) :
+    explicit constexpr Path(uint n) :
       n{n} {
-        assume(n >= 1);
+        assume(n >= 1U);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int w = 0; w < n - 1; ++w) {
+        for(auto w = 0U; w < n - 1; ++w) {
             G.addEdge(w, w + 1);
         }
         return G;
@@ -218,17 +219,17 @@ public:
 };
 
 class Clique : public Generating<Graph> {
-    int n;
+    uint n;
 
 public:
-    explicit constexpr Clique(int n) :
+    explicit constexpr Clique(uint n) :
       n{n} {
-        assume(n >= 1);
+        assume(n >= 1U);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int i = 0; i < n; i++) {
-            for(int j = i + 1; j < n; j++) {
+        for(uint i = 0; i < n; i++) {
+            for(uint j = i + 1; j < n; j++) {
                 G.addEdge(i, j);
             }
         }
@@ -242,16 +243,16 @@ public:
 };
 
 class Cycle : Generating<Graph> {
-    int n;
+    uint n;
 
 public:
-    explicit constexpr Cycle(int n) :
+    explicit constexpr Cycle(uint n) :
       n{n} {
-        assume(n >= 3);
+        assume(n >= 3U);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int i = 0; i < n - 1; i++) {
+        for(auto i = 0U; i < n - 1; i++) {
             G.addEdge(i, i + 1);
         }
         G.addEdge(n - 1, 0);

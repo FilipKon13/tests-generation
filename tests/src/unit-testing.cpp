@@ -62,7 +62,7 @@ TEST_CASE("test_generating_and_standard_types") {
     test.nextSuite();
     test.print(2);
     test.print(TestGenerating{});
-    test.print(1, space, TestGenerating{}, space, "abc");
+    test.print(1, SPACE, TestGenerating{}, SPACE, "abc");
     test.nextTest();
     test << 11 << TestGenerating{} << ' ' << "def";
 

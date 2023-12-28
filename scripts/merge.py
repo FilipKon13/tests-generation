@@ -18,7 +18,6 @@ class file:
         self.depen = []
         self.name = name
         self.path = path
-        filemap[name] = self
         with open(path, 'r') as file:
             for line in file:
                 if reg_local.match(line):
@@ -30,7 +29,7 @@ class file:
 for root, dirs, files in os.walk(SRC_PATH):
     for name in files:
         path = os.path.join(root, name)
-        file(path, name)
+        filemap[name] = file(path, name)
 
 visited = set()
 last = False
@@ -54,7 +53,7 @@ def dfs(file : file, output):
                     inside_testing = False
                 continue
             else:
-                if "TESTING" in line:
+                if "TESTRUN" in line:
                     inside_testing = True
                     continue
             if line == '\n':
