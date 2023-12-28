@@ -4,10 +4,10 @@
 #include "rand.hpp"
 
 #include <algorithm>
-#include <ostream>
-#include <vector>
 #include <initializer_list>
+#include <ostream>
 #include <type_traits>
+#include <vector>
 
 namespace test {
 

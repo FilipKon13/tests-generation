@@ -114,18 +114,24 @@ using gen_type = xoshiro256pp;
 
 template<typename T>
 class GeneratorWrapper {
-    T & gen;
+    T * gen{};
+
 public:
-    explicit GeneratorWrapper(T & gen) noexcept : gen(gen) {}
+    GeneratorWrapper() noexcept = default;
+    explicit GeneratorWrapper(T & gen) noexcept :
+      gen(&gen) {}
+    GeneratorWrapper & operator=(T & gen) {
+        this->gen = &gen;
+        return *this;
+    }
     ~GeneratorWrapper() noexcept = default;
-    GeneratorWrapper(GeneratorWrapper const &) = delete;
-    GeneratorWrapper(GeneratorWrapper &&) = delete;
-    // already deleted because of reference member
-    GeneratorWrapper & operator=(GeneratorWrapper const &) = delete;
-    GeneratorWrapper & operator=(GeneratorWrapper &&) = delete;
+    GeneratorWrapper(GeneratorWrapper const &) noexcept = default;
+    GeneratorWrapper(GeneratorWrapper &&) noexcept = default;
+    GeneratorWrapper & operator=(GeneratorWrapper const &) noexcept = default;
+    GeneratorWrapper & operator=(GeneratorWrapper &&) noexcept = default;
 
     typename T::result_type operator()() noexcept {
-        return gen();
+        return *gen();
     }
 };
 
@@ -461,16 +467,18 @@ public:
 
 class Cycle : Generating<Graph> {
     int n;
+
 public:
-    explicit constexpr Cycle(int n) : n{n} {
+    explicit constexpr Cycle(int n) :
+      n{n} {
         assume(n >= 3);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int i=0;i<n-1;i++) {
-            G.addEdge(i,i+1);
+        for(int i = 0; i < n - 1; i++) {
+            G.addEdge(i, i + 1);
         }
-        G.addEdge(n-1,0);
+        G.addEdge(n - 1, 0);
         return G;
     }
     [[nodiscard]] Graph generate(gen_type & gen) const override {
@@ -533,7 +541,7 @@ public:
 };
 
 void printEdges(std::ostream & s, Graph const & G, int shift = 0) {
-    for(auto [a,b] : G.get_edges()) {
+    for(auto [a, b] : G.get_edges()) {
         s << a + shift << ' ' << b + shift << '\n';
     }
 }
@@ -544,12 +552,12 @@ void printEdgesAsTree(std::ostream & s, Graph const & G, int shift = 0) {
         par[w] = p;
         for(auto v : G[w]) {
             if(v != p) {
-                self(v,w,self);
+                self(v, w, self);
             }
         }
     };
-    dfs(0,-1,dfs);
-    for(uint i=1;i<G.size();i++) {
+    dfs(0, -1, dfs);
+    for(uint i = 1; i < G.size(); i++) {
         s << par[i] + shift << '\n';
     }
 }
@@ -660,20 +668,14 @@ class OIOIOIManager {
     };
     using index = detail::index;
     test_info * curr_test{nullptr};
-    index curr_index{};
+    index curr_index;
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
     gen_type source_generator{TESTGEN_SEED};
 
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      abbr(std::move(abbr)) {
-        if(ocen) {
-            test(1, OCEN);    // pro1ocen.in
-        } else {
-            test(1, 1);    // pro1a.in
-        }
-    }
+      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1)}, abbr(std::move(abbr)) {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -692,7 +694,9 @@ public:
 
     void nextTest() {
         std::visit(combine{
-                       [this](TestType x) { this->test(this->curr_index.test + 1, x); },
+                       [this](TestType x) {
+                           this->test(this->curr_index.test + 1, x);
+                       },
                        [this](unsigned x) {
                            this->test(this->curr_index.test + 1, x);
                        }},
@@ -701,7 +705,9 @@ public:
 
     void nextSuite() {
         std::visit(combine{
-                       [this]([[maybe_unused]] TestType x) { this->test(1, 1); },
+                       [this]([[maybe_unused]] TestType x) {
+                           this->test(1, 1);
+                       },
                        [this](unsigned x) {
                            this->test(1, x + 1);
                        }},

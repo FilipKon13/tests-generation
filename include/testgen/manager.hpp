@@ -65,20 +65,14 @@ class OIOIOIManager {
     };
     using index = detail::index;
     test_info * curr_test{nullptr};
-    index curr_index{};
+    index curr_index;
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
     gen_type source_generator{TESTGEN_SEED};
 
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      abbr(std::move(abbr)) {
-        if(ocen) {
-            test(1, OCEN);    // pro1ocen.in
-        } else {
-            test(1, 1);    // pro1a.in
-        }
-    }
+      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1)}, abbr(std::move(abbr)) {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -97,7 +91,9 @@ public:
 
     void nextTest() {
         std::visit(combine{
-                       [this](TestType x) { this->test(this->curr_index.test + 1, x); },
+                       [this](TestType x) {
+                           this->test(this->curr_index.test + 1, x);
+                       },
                        [this](unsigned x) {
                            this->test(this->curr_index.test + 1, x);
                        }},
@@ -106,7 +102,9 @@ public:
 
     void nextSuite() {
         std::visit(combine{
-                       [this]([[maybe_unused]] TestType x) { this->test(1, 1); },
+                       [this]([[maybe_unused]] TestType x) {
+                           this->test(1, 1);
+                       },
                        [this](unsigned x) {
                            this->test(1, x + 1);
                        }},

@@ -57,9 +57,8 @@ public:
     }
 };
 
-
 void printEdges(std::ostream & s, Graph const & G, int shift = 0) {
-    for(auto [a,b] : G.get_edges()) {
+    for(auto [a, b] : G.get_edges()) {
         s << a + shift << ' ' << b + shift << '\n';
     }
 }
@@ -70,12 +69,12 @@ void printEdgesAsTree(std::ostream & s, Graph const & G, int shift = 0) {
         par[w] = p;
         for(auto v : G[w]) {
             if(v != p) {
-                self(v,w,self);
+                self(v, w, self);
             }
         }
     };
-    dfs(0,-1,dfs);
-    for(uint i=1;i<G.size();i++) {
+    dfs(0, -1, dfs);
+    for(uint i = 1; i < G.size(); i++) {
         s << par[i] + shift << '\n';
     }
 }

@@ -243,16 +243,18 @@ public:
 
 class Cycle : Generating<Graph> {
     int n;
+
 public:
-    explicit constexpr Cycle(int n) : n{n} {
+    explicit constexpr Cycle(int n) :
+      n{n} {
         assume(n >= 3);
     }
     [[nodiscard]] Graph generate() const {
         Graph G(n);
-        for(int i=0;i<n-1;i++) {
-            G.addEdge(i,i+1);
+        for(int i = 0; i < n - 1; i++) {
+            G.addEdge(i, i + 1);
         }
-        G.addEdge(n-1,0);
+        G.addEdge(n - 1, 0);
         return G;
     }
     [[nodiscard]] Graph generate(gen_type & gen) const override {

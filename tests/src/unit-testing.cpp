@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include <testgen/testing.hpp>
 #include <sstream>
+#include <type_traits>
 
 using namespace test;
 
@@ -146,4 +147,18 @@ TEST_CASE("check-assumption-change-test") {
         test.nextTest();
         CHECK_NOTHROW(test << T);
     }
+}
+
+TEST_CASE("test-generator-in-testcase") {
+    std::stringstream s;
+    Testing<TestManager, TestcaseBase> test{s};
+    [[maybe_unused]] auto gen = test.nextSuite();
+    static_assert(std::is_same_v<decltype(gen), TestcaseBase>);
+}
+
+TEST_CASE("test-default") {
+    std::stringstream s;
+    Testing<TestManager> test{s};
+    [[maybe_unused]] auto gen = test.nextSuite();
+    static_assert(std::is_same_v<decltype(gen), DummyTestcase>);
 }

@@ -95,18 +95,24 @@ using gen_type = xoshiro256pp;
 
 template<typename T>
 class GeneratorWrapper {
-    T & gen;
+    T * gen{};
+
 public:
-    explicit GeneratorWrapper(T & gen) noexcept : gen(gen) {}
+    GeneratorWrapper() noexcept = default;
+    explicit GeneratorWrapper(T & gen) noexcept :
+      gen(&gen) {}
+    GeneratorWrapper & operator=(T & gen) {
+        this->gen = &gen;
+        return *this;
+    }
     ~GeneratorWrapper() noexcept = default;
-    GeneratorWrapper(GeneratorWrapper const &) = delete;
-    GeneratorWrapper(GeneratorWrapper &&) = delete;
-    // already deleted because of reference member
-    GeneratorWrapper & operator=(GeneratorWrapper const &) = delete;
-    GeneratorWrapper & operator=(GeneratorWrapper &&) = delete;
+    GeneratorWrapper(GeneratorWrapper const &) noexcept = default;
+    GeneratorWrapper(GeneratorWrapper &&) noexcept = default;
+    GeneratorWrapper & operator=(GeneratorWrapper const &) noexcept = default;
+    GeneratorWrapper & operator=(GeneratorWrapper &&) noexcept = default;
 
     typename T::result_type operator()() noexcept {
-        return gen();
+        return *gen();
     }
 };
 

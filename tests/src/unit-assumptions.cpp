@@ -61,9 +61,10 @@ TEST_CASE("test-reset") {
     }
 }
 
-struct Testcase {
+struct TestcaseGen {
     int gen;
 };
+
 static_assert(!has_gen_v<int>);
 static_assert(!has_gen_v<DummyTestcase>);
-static_assert(has_gen_v<Testcase>);
+static_assert(has_gen_v<TestcaseGen>);

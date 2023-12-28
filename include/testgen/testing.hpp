@@ -98,6 +98,10 @@ public:
     }
 };
 
+struct TestcaseBase {
+    GeneratorWrapper<gen_type> gen;
+};
+
 } /* namespace test */
 
 #endif /* TESTGEN_TESTING_H_ */
