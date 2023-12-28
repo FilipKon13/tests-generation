@@ -10,6 +10,19 @@ Single-header library for generating test files.
 
 ## How it works
 
+### Some design choices
+To prevent user from accidentally taking copy of RNG assigned to particular testcase (which could lead to generating same bits over and over) `Testing::generator` method returns wrapper around real reference to RNG object. Client-site usage is basically the same as if method returned normal reference (using `operator()` to generate numbers) by there is only one way to assing return value i.e.
+
+    Testing</* */> test;
+    auto gen = test.generator(); // Only proper way at the moment
+    auto & gen = test.generator(); // Does not compile, therefore ok
+    /* If method returned reference it would be: */
+    auto & gen = test.generator(); // OK
+    auto gen = test.generator(); // BAD, we create a copy from reference
+
+It is more verbose if one wanted to use real types (`GeneratorWrapper<gen_type>` vs. `gen_type`) so usage of `auto` identifier is encouraged. Another solution to this problem would be making RNG non-copyable, but that would be weird and problematic.
+
+
 ### Discussion about randomness
 It is desirable that tests generated locally are identical to these generated when grading submission i.e. should not depend on external state or platform. Therefore we can expect pseudorandomness at best and this is what this library provides.
 

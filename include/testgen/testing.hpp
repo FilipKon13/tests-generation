@@ -13,14 +13,14 @@ template<typename TestcaseManager_t, typename Testcase_t = DummyTestcase, templa
 class Testing : private TestcaseManager_t {
     template<typename T>
     auto generate(Generating<T> const & schema) {
-        return schema.generate(this->generator());
+        return schema.generate(TestcaseManager_t::generator());
     }
 
     Testcase_t update_testcase() {
         output.set(this->stream());
         Testcase_t T;
         if constexpr(has_gen_v<Testcase_t>) {
-            T.gen = this->generator();
+            T.gen = TestcaseManager_t::generator();
         }
         return T;
     }
@@ -37,7 +37,9 @@ public:
     Testing & operator=(Testing &&) = delete;
     ~Testing() = default;
 
-    using TestcaseManager_t::generator;
+    GeneratorWrapper<gen_type> generator() {
+        return GeneratorWrapper<gen_type>{TestcaseManager_t::generator()};
+    }
 
     Testcase_t nextSuite() {
         TestcaseManager_t::nextSuite();

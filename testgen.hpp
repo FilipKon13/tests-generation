@@ -31,7 +31,7 @@ inline void assume(bool value) {
 constexpr uint64_t TESTGEN_SEED = 0;
 
 class xoshiro256pp {
-    // Suppress magic number errors (a lot of that in here and that is normal for a RNG)
+    // Suppress magic number linter errors (a lot of that in here and that is normal for a RNG)
 public:
     typedef uint64_t result_type;
 
@@ -111,6 +111,23 @@ public:
 };
 
 using gen_type = xoshiro256pp;
+
+template<typename T>
+class GeneratorWrapper {
+    T & gen;
+public:
+    explicit GeneratorWrapper(T & gen) noexcept : gen(gen) {}
+    ~GeneratorWrapper() noexcept = default;
+    GeneratorWrapper(GeneratorWrapper const &) = delete;
+    GeneratorWrapper(GeneratorWrapper &&) = delete;
+    // already deleted because of reference member
+    GeneratorWrapper & operator=(GeneratorWrapper const &) = delete;
+    GeneratorWrapper & operator=(GeneratorWrapper &&) = delete;
+
+    typename T::result_type operator()() noexcept {
+        return gen();
+    }
+};
 
 template<typename T>
 struct Generating {

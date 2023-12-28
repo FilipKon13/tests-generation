@@ -85,7 +85,7 @@ TEST_CASE("test-gen") {
 TEST_CASE("test-get-generator") {
     std::stringstream s;
     Testing<TestManager> test{s};
-    [[maybe_unused]] gen_type & gen = test.generator();
+    [[maybe_unused]] auto gen = test.generator();
 }
 
 struct Testcase {
