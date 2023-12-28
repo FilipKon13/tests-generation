@@ -210,8 +210,10 @@ public:
         }
         return G;
     }
-    [[nodiscard]] Graph generate([[maybe_unused]] gen_type & gen) const override {
-        return generate();
+    [[nodiscard]] Graph generate(gen_type & gen) const override {
+        Graph G = generate();
+        G.permute(gen);
+        return G;
     }
 };
 
@@ -232,8 +234,31 @@ public:
         }
         return G;
     }
-    [[nodiscard]] Graph generate([[maybe_unused]] gen_type & gen) const override {
-        return generate();
+    [[nodiscard]] Graph generate(gen_type & gen) const override {
+        Graph G = generate();
+        G.permute(gen);
+        return G;
+    }
+};
+
+class Cycle : Generating<Graph> {
+    int n;
+public:
+    explicit constexpr Cycle(int n) : n{n} {
+        assume(n >= 3);
+    }
+    [[nodiscard]] Graph generate() const {
+        Graph G(n);
+        for(int i=0;i<n-1;i++) {
+            G.addEdge(i,i+1);
+        }
+        G.addEdge(n-1,0);
+        return G;
+    }
+    [[nodiscard]] Graph generate(gen_type & gen) const override {
+        Graph G = generate();
+        G.permute(gen);
+        return G;
     }
 };
 

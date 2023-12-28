@@ -19,3 +19,38 @@ TEST_CASE("output-change-test") {
     CHECK(out1.str() == "12\n14\n");
     CHECK(out2.str() == "13\n15\n");
 }
+
+TEST_CASE("test-print-graph") {
+    std::stringstream out{};
+    Graph G = Clique(3).generate();
+    printEdges(out, G);
+    CHECK(out.str() == "0 1\n0 2\n1 2\n");
+}
+
+TEST_CASE("test-print-graph-shift") {
+    std::stringstream out{};
+    Graph G = Clique(3).generate();
+    printEdges(out, G, 1);
+    CHECK(out.str() == "1 2\n1 3\n2 3\n");
+}
+
+TEST_CASE("test-print-tree") {
+    std::stringstream out{};
+    Graph G(4);
+    G.addEdge(0,1);
+    G.addEdge(0,2);
+    G.addEdge(0,3);
+    printEdgesAsTree(out, G);
+    CHECK(out.str() == "0\n0\n0\n");
+}
+
+TEST_CASE("test-print-tree-shift") {
+    std::stringstream out{};
+    Graph G(4);
+    G.addEdge(0,1);
+    G.addEdge(0,2);
+    G.addEdge(0,3);
+    printEdgesAsTree(out, G, 1);
+    CHECK(out.str() == "1\n1\n1\n");
+}
+
