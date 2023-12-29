@@ -4,6 +4,7 @@
 #include "rand.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <initializer_list>
 #include <ostream>
 #include <type_traits>

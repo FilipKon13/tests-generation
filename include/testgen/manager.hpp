@@ -70,7 +70,7 @@ class OIOIOIManager {
 
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1)}, abbr(std::move(abbr)) {}
+      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1U)}, abbr(std::move(abbr)) {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;

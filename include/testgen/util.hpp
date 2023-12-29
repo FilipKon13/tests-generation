@@ -4,7 +4,7 @@
 #ifdef TESTRUN
 
 #include <stdexcept>
-inline void assume(bool value) {
+constexpr inline void assume(bool value) {
     if(!value) {
         throw std::runtime_error("Assumption failed!");
     }
@@ -15,7 +15,7 @@ inline void assume(bool value) {
 #include <cstdlib>
 #include <iostream>
 
-inline void assume(bool value) {
+constexpr inline void assume(bool value) {
     if(!value) {
         std::cerr << "Assumption failed!\n";
         exit(EXIT_FAILURE);

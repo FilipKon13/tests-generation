@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <numeric>
@@ -19,7 +20,7 @@
 namespace test {
 /* ==================== util.hpp ====================*/
 
-inline void assume(bool value) {
+constexpr inline void assume(bool value) {
     if(!value) {
         std::cerr << "Assumption failed!\n";
         exit(EXIT_FAILURE);
@@ -498,10 +499,11 @@ public:
 /* ==================== output.hpp ====================*/
 
 class Space {
-    friend std::ostream & operator<<(std::ostream & s, [[maybe_unused]] Space const & ignored) {
+    friend std::ostream & operator<<(std::ostream & s, Space const & /* unused */) {
         return s << ' ';
     }
-} const SPACE;
+};
+[[maybe_unused]] constexpr static Space SPACE{};
 
 class Output : public std::ostream {
 public:
@@ -774,7 +776,7 @@ class OIOIOIManager {
 
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1)}, abbr(std::move(abbr)) {}
+      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1U)}, abbr(std::move(abbr)) {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;

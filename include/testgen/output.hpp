@@ -8,10 +8,11 @@
 namespace test {
 
 class Space {
-    friend std::ostream & operator<<(std::ostream & s, [[maybe_unused]] Space const & ignored) {
+    friend std::ostream & operator<<(std::ostream & s, Space const & /* unused */) {
         return s << ' ';
     }
-} const SPACE;
+};
+[[maybe_unused]] constexpr static Space SPACE{};
 
 class Output : public std::ostream {
 public:
