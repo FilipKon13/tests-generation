@@ -20,3 +20,4 @@
         - make_simple ✅
         - printing ✅
 - Naming convention with clang-tidy ✅
+- Write README ❌

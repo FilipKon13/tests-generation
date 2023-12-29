@@ -1,6 +1,7 @@
 #include "doctest.h"
-#include <testgen/rand.hpp>
 #include <type_traits>
+
+#include <testgen/rand.hpp>
 using namespace test;
 
 static_assert(std::is_copy_assignable_v<GeneratorWrapper<gen_type>>);

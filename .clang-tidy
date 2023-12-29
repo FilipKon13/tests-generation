@@ -15,7 +15,9 @@ Checks: '*,
         -altera-*,
         -*-narrowing-conversions,
         -misc-no-recursion,
-        -cppcoreguidelines-avoid-do-while'
+        -cppcoreguidelines-avoid-do-while,
+        -*c-arrays,
+        -*decay'
 
 ExtraArgs:
     - '-std=c++17'

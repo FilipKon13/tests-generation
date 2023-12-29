@@ -18,7 +18,7 @@ class Testing : private TestcaseManagerT {
 
     TestcaseT updateTestcase() {
         output.set(this->stream());
-        TestcaseT T;
+        TestcaseT T{};
         if constexpr(has_gen_v<TestcaseT>) {
             T.gen = TestcaseManagerT::generator();
         }

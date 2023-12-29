@@ -1,6 +1,7 @@
 #include "doctest.h"
-#include <testgen/sequence.hpp>
 #include <sstream>
+
+#include <testgen/sequence.hpp>
 using namespace test;
 using namespace std;
 
@@ -15,7 +16,7 @@ TEST_CASE("test_construction") {
 
 TEST_CASE("test_add") {
     Sequence<int> s1(2, 2);
-    Sequence<int> s2({1, 2, 3});
+    Sequence<int> const s2({1, 2, 3});
 
     auto const s = s1 + s2;
     s1 += s2;
@@ -58,35 +59,40 @@ TEST_CASE("test_finite_sequence") {
     gen_type gen{0};
     SUBCASE("in-place c-style array construction") {
         using arr = int[3];
-        FiniteSequence seq(20, arr{10, 20, 30});
+        FiniteSequence const seq(20, arr{10, 20, 30});
         auto const res = seq.generate(gen);
         CHECK(res.size() == size_t{20});
-        for(auto v : res)
+        for(auto v : res) {
             CHECK_UNARY(v == 10 || v == 20 || v == 30);
-        for(int i = 1; i <= 3; ++i)
+        }
+        for(int i = 1; i <= 3; ++i) {
             CHECK(find(res.begin(), res.end(), i * 10) != res.end());
+        }
     }
     SUBCASE("initializer list construction") {
-        FiniteSequence seq(20, {10, 20, 30});
+        FiniteSequence const seq(20, {10, 20, 30});
         auto const res = seq.generate(gen);
         CHECK(res.size() == size_t{20});
-        for(auto v : res)
+        for(auto v : res) {
             CHECK_UNARY(v == 10 || v == 20 || v == 30);
-        for(int i = 1; i <= 3; ++i)
+        }
+        for(int i = 1; i <= 3; ++i) {
             CHECK(find(res.begin(), res.end(), i * 10) != res.end());
+        }
     }
     SUBCASE("c-style array construction") {
-        int arr[] = {10, 20, 30};
-        FiniteSequence seq(20, arr);
+        int const arr[] = {10, 20, 30};
+        FiniteSequence const seq(20, arr);
         auto const res = seq.generate(gen);
         CHECK(res.size() == size_t{20});
-        for(auto v : res)
+        for(auto v : res) {
             CHECK_UNARY(v == 10 || v == 20 || v == 30);
-        for(int i = 1; i <= 3; ++i)
+        }
+        for(int i = 1; i <= 3; ++i) {
             CHECK(find(res.begin(), res.end(), i * 10) != res.end());
+        }
     }
     SUBCASE("deducing type") {
-        auto res = FiniteSequence(5, {1.0, 2.0, 3.0}).generate(gen).front();
-        static_assert(std::is_same_v<decltype(res), double>);
+        static_assert(std::is_same_v<decltype(FiniteSequence(5, {1.0, 2.0, 3.0}).generate(gen).front()), double &>);
     }
 }

@@ -1,6 +1,7 @@
 #include "doctest.h"
-#include <testgen/output.hpp>
 #include <sstream>
+
+#include <testgen/output.hpp>
 using namespace test;
 
 TEST_CASE("test_empty") {
@@ -59,7 +60,8 @@ TEST_CASE("test_space_at_end") {
 
 TEST_CASE("output-change-test") {
     Output out;
-    std::stringstream out1{}, out2{};
+    std::stringstream out1{};
+    std::stringstream out2{};
 
     out.set(out1);
     out << 12 << '\n';
@@ -76,14 +78,14 @@ TEST_CASE("output-change-test") {
 
 TEST_CASE("test-print-graph") {
     std::stringstream out{};
-    Graph G = Clique(3).generate();
+    Graph const G = Clique(3).generate();
     printEdges(out, G);
     CHECK(out.str() == "0 1\n0 2\n1 2\n");
 }
 
 TEST_CASE("test-print-graph-shift") {
     std::stringstream out{};
-    Graph G = Clique(3).generate();
+    Graph const G = Clique(3).generate();
     printEdges(out, G, 1);
     CHECK(out.str() == "1 2\n1 3\n2 3\n");
 }

@@ -18,7 +18,7 @@ class Output : public std::ostream {
 public:
     explicit Output(std::ostream && stream) :
       std::ostream(std::move(stream)) {}
-    explicit Output(std::ostream const & stream) {
+    explicit Output(std::ostream & stream) {
         set(stream);
     }
     Output() = default;
@@ -28,7 +28,7 @@ public:
     Output & operator=(Output &&) = delete;
     ~Output() override = default;
 
-    void set(std::ostream const & stream) {
+    void set(std::ostream & stream) {
         rdbuf(stream.rdbuf());
     }
 
@@ -37,17 +37,16 @@ private:
                               NON_SPACE };
 
 public:
-    // no forwarding references as output needs l-value references anyway
     template<typename... Args>
-    void dumpOutput(Args const &... outs) {
+    void dumpOutput(Args &&... outs) {
         if constexpr(sizeof...(outs) != 0) {
             auto state = WAS_SPACE;
             ([&] {
-                constexpr auto IS_SPACE = std::is_same_v<Args, Space>;
+                constexpr auto IS_SPACE = std::is_same_v<std::remove_cv_t<std::remove_reference_t<Args>>, Space>;
                 if(state == NON_SPACE && !IS_SPACE) {
                     *this << '\n';
                 }
-                *this << outs;
+                *this << std::forward<Args>(outs);
                 state = IS_SPACE ? WAS_SPACE : NON_SPACE;
             }(),
              ...);

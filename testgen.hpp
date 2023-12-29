@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <functional>
@@ -20,7 +21,7 @@
 namespace test {
 /* ==================== util.hpp ====================*/
 
-constexpr inline void assume(bool value) {
+inline void assume(bool value) {
     if(!value) {
         std::cerr << "Assumption failed!\n";
         exit(EXIT_FAILURE);
@@ -149,10 +150,9 @@ private:
     template<typename V>
     static decltype(static_cast<const Generating<V> &>(std::declval<T>()), std::true_type{})
     helper(const Generating<V> &);
-
     static std::false_type helper(...); /* fallback */
 public:
-    //NOLINTNEXTLINE(readability-identifier-naming)
+    //NOLINTNEXTLINE readability-identifier-naming and c-vararg
     static constexpr bool value = decltype(helper(std::declval<T>()))::value;
 };
 
@@ -509,7 +509,7 @@ class Output : public std::ostream {
 public:
     explicit Output(std::ostream && stream) :
       std::ostream(std::move(stream)) {}
-    explicit Output(std::ostream const & stream) {
+    explicit Output(std::ostream & stream) {
         set(stream);
     }
     Output() = default;
@@ -519,7 +519,7 @@ public:
     Output & operator=(Output &&) = delete;
     ~Output() override = default;
 
-    void set(std::ostream const & stream) {
+    void set(std::ostream & stream) {
         rdbuf(stream.rdbuf());
     }
 
@@ -528,17 +528,16 @@ private:
                               NON_SPACE };
 
 public:
-    // no forwarding references as output needs l-value references anyway
     template<typename... Args>
-    void dumpOutput(Args const &... outs) {
+    void dumpOutput(Args &&... outs) {
         if constexpr(sizeof...(outs) != 0) {
             auto state = WAS_SPACE;
             ([&] {
-                constexpr auto IS_SPACE = std::is_same_v<Args, Space>;
+                constexpr auto IS_SPACE = std::is_same_v<std::remove_cv_t<std::remove_reference_t<Args>>, Space>;
                 if(state == NON_SPACE && !IS_SPACE) {
                     *this << '\n';
                 }
-                *this << outs;
+                *this << std::forward<Args>(outs);
                 state = IS_SPACE ? WAS_SPACE : NON_SPACE;
             }(),
              ...);
@@ -632,7 +631,7 @@ class Testing : private TestcaseManagerT {
 
     TestcaseT updateTestcase() {
         output.set(this->stream());
-        TestcaseT T;
+        TestcaseT T{};
         if constexpr(has_gen_v<TestcaseT>) {
             T.gen = TestcaseManagerT::generator();
         }
@@ -891,7 +890,7 @@ class DistSequence : Generating<Sequence<T>> {
     Dist dist;
 
 public:
-    constexpr DistSequence(std::size_t n, T begin, T end) noexcept :
+    constexpr DistSequence(std::size_t n, T begin, T end) :
       n(n), dist(begin, end) {}
     Sequence<T> generate(gen_type & gen) const override {
         return Sequence<T>(n, [&] { return dist(gen); });
@@ -920,7 +919,7 @@ public:
     constexpr FiniteSequence(std::size_t n, T const (&arr)[S]) :
       n(n), elems(construct(arr, std::make_index_sequence<S>{})) {}
     Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems[dist(gen)]; });
+        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems.at(dist(gen)); });
     }
 };
 

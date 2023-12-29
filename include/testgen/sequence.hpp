@@ -65,7 +65,7 @@ class DistSequence : Generating<Sequence<T>> {
     Dist dist;
 
 public:
-    constexpr DistSequence(std::size_t n, T begin, T end) noexcept :
+    constexpr DistSequence(std::size_t n, T begin, T end) :
       n(n), dist(begin, end) {}
     Sequence<T> generate(gen_type & gen) const override {
         return Sequence<T>(n, [&] { return dist(gen); });
@@ -94,7 +94,7 @@ public:
     constexpr FiniteSequence(std::size_t n, T const (&arr)[S]) :
       n(n), elems(construct(arr, std::make_index_sequence<S>{})) {}
     Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems[dist(gen)]; });
+        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems.at(dist(gen)); });
     }
 };
 

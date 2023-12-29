@@ -1,4 +1,5 @@
 #include "doctest.h"
+
 #include <testgen/assumptions.hpp>
 using namespace std;
 using namespace test;
@@ -61,7 +62,8 @@ TEST_CASE("test-reset") {
     }
 }
 
-struct TestcaseGen {
+class TestcaseGen {
+public:
     int gen;
 };
 

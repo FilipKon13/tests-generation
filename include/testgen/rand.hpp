@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <type_traits>
 
 constexpr uint64_t TESTGEN_SEED = 0;
@@ -129,10 +130,9 @@ private:
     template<typename V>
     static decltype(static_cast<const Generating<V> &>(std::declval<T>()), std::true_type{})
     helper(const Generating<V> &);
-
     static std::false_type helper(...); /* fallback */
 public:
-    //NOLINTNEXTLINE(readability-identifier-naming)
+    //NOLINTNEXTLINE readability-identifier-naming and c-vararg
     static constexpr bool value = decltype(helper(std::declval<T>()))::value;
 };
 

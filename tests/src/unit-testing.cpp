@@ -1,31 +1,34 @@
 #include "doctest.h"
-#include <testgen/testing.hpp>
 #include <sstream>
 #include <type_traits>
 
+#include <testgen/testing.hpp>
 using namespace test;
 
-struct TestManager {
-    std::stringstream & stream_;
-    gen_type gen_{0};
-    TestManager(std::stringstream & stream) :
-      stream_{stream} {}
+class TestManager {
+    std::reference_wrapper<std::stringstream> m_stream;
+    gen_type m_gen{0};
+
+public:
+    explicit TestManager(std::stringstream & stream) :
+      m_stream{stream} {}
     void nextSuite() {
-        stream_ << "next suite\n";
+        m_stream.get() << "next suite\n";
     }
     void nextTest() {
-        stream_ << "next test\n";
+        m_stream.get() << "next test\n";
     }
     std::ostream & stream() {
-        return stream_;
+        return m_stream.get();
     }
     gen_type & generator() {
-        return gen_;
+        return m_gen;
     }
 };
 
-struct TestGenerating : public Generating<int> {
-    int generate(gen_type &) const override {
+class TestGenerating : public Generating<int> {
+public:
+    int generate(gen_type & /* unused */) const override {
         return 3;
     }
 };
@@ -70,17 +73,17 @@ TEST_CASE("test_generating_and_standard_types") {
 }
 
 TEST_CASE("test-no-gen") {
-    struct Testcase {};
+    struct testcase {};
     std::stringstream s;
-    Testing<TestManager, Testcase> test{s};
+    [[maybe_unused]] Testing<TestManager, testcase> const test{s};
 }
 
 TEST_CASE("test-gen") {
-    struct Testcase {
-        gen_type & gen;
+    struct testcase {
+        gen_type gen;
     };
     std::stringstream s;
-    Testing<TestManager, Testcase> test{s};
+    [[maybe_unused]] Testing<TestManager, testcase> const test{s};
 }
 
 TEST_CASE("test-get-generator") {
@@ -89,7 +92,8 @@ TEST_CASE("test-get-generator") {
     [[maybe_unused]] auto gen = test.generator();
 }
 
-struct Testcase {
+class Testcase {
+public:
     int x;
     friend std::ostream & operator<<(std::ostream & s, Testcase const & t) {
         return s << t.x;
@@ -97,14 +101,14 @@ struct Testcase {
 };
 
 TEST_CASE("check-assumption-empty") {
-    Testcase T{2};
+    Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
     test << T;
 }
 
 TEST_CASE("check-assumption-ok") {
-    Testcase T{2};
+    Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
     test.globalAssumption([](Testcase const & t) { return t.x == 2; });
@@ -112,7 +116,7 @@ TEST_CASE("check-assumption-ok") {
 }
 
 TEST_CASE("check-assumption-bad") {
-    Testcase T{2};
+    Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
     test.globalAssumption([](Testcase const & t) { return t.x == 3; });
@@ -120,7 +124,7 @@ TEST_CASE("check-assumption-bad") {
 }
 
 TEST_CASE("check-assumption-change-suite") {
-    Testcase T{2};
+    Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
     test.suiteAssumption([](Testcase const & t) { return t.x == 3; });
@@ -135,7 +139,7 @@ TEST_CASE("check-assumption-change-suite") {
 }
 
 TEST_CASE("check-assumption-change-test") {
-    Testcase T{2};
+    Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
     test.testAssumption([](Testcase const & t) { return t.x == 3; });
