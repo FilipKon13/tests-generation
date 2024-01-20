@@ -21,3 +21,4 @@
         - printing ✅
 - Naming convention with clang-tidy ✅
 - Write README ❌
+- Utilities for assumption functions (&& and ||) ✅

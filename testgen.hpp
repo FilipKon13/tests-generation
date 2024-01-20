@@ -575,7 +575,8 @@ void printEdgesAsTree(std::ostream & s, Graph const & g, int shift = 0) {
 template<typename TestcaseT>
 class AssumptionManager {
 public:
-    using assumption_t = bool (*)(TestcaseT const &);
+    // using assumption_t = bool (*)(TestcaseT const &);
+    using assumption_t = std::function<bool(TestcaseT const &)>;
 
 private:
     static bool empty(TestcaseT const & /*unused*/) {
@@ -586,14 +587,17 @@ private:
     assumption_t test = empty;
 
 public:
-    void setGlobal(assumption_t fun) {
-        global = fun;
+    template<typename AssT>
+    void setGlobal(AssT && fun) {
+        global = std::forward<AssT>(fun);
     }
-    void setSuite(assumption_t fun) {
-        suite = fun;
+    template<typename AssT>
+    void setSuite(AssT && fun) {
+        suite = std::forward<AssT>(fun);
     }
-    void setTest(assumption_t fun) {
-        test = fun;
+    template<typename AssT>
+    void setTest(AssT && fun) {
+        test = std::forward<AssT>(fun);
     }
     void resetGlobal() {
         global = empty;
@@ -608,6 +612,20 @@ public:
         return test(testcase) && suite(testcase) && global(testcase);
     }
 };
+
+template<typename Fun1T, typename Fun2T>
+auto operator&&(Fun1T && fun1, Fun2T && fun2) {
+    return [f1 = std::forward<Fun1T>(fun1), f2 = std::forward<Fun2T>(fun2)](auto const & testcase) mutable {
+        return f1(testcase) && f2(testcase);
+    };
+}
+
+template<typename Fun1T, typename Fun2T>
+auto operator||(Fun1T && fun1, Fun2T && fun2) {
+    return [f1 = std::forward<Fun1T>(fun1), f2 = std::forward<Fun2T>(fun2)](auto const & testcase) mutable {
+        return f1(testcase) || f2(testcase);
+    };
+}
 
 class DummyTestcase {};
 
