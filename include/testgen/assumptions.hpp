@@ -70,7 +70,7 @@ template<typename T>
 struct has_gen<T, std::void_t<decltype(std::declval<T>().gen)>> : std::true_type {};
 
 template<class T>
-inline constexpr bool has_gen_v = has_gen<T>::value;    //NOLINT(readability-identifier-naming)
+inline constexpr bool has_gen_v = has_gen<T>::value; //NOLINT(readability-identifier-naming)
 
 } /* namespace test */
 

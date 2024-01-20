@@ -11,7 +11,7 @@ Single-header library for generating test files.
 ## How it works
 
 ### Some design choices
-To prevent user from accidentally taking copy of RNG assigned to particular testcase (which could lead to generating same bits over and over) `Testing::generator` method returns wrapper around real reference to RNG object. Client-site usage is basically the same as if method returned normal reference (using `operator()` to generate numbers) by there is only one way to assing return value i.e.
+To prevent user from accidentally taking copy of RNG assigned to particular testcase (which could lead to generating same bits over and over) `Testing::generator` method returns wrapper around real reference to RNG object. Client-site usage is basically the same as if method returned normal reference (using `operator()` to generate numbers) but there is only one way to assing return value i.e.
 
     Testing</* */> test;
     auto gen = test.generator(); // Only proper way at the moment

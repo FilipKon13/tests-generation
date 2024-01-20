@@ -19,6 +19,12 @@
         - identify ✅
         - make_simple ✅
         - printing ✅
+        - number of edges ❌
+        - checks ❌
+            - connectivity
+            - simplicity
+            - acyclic
 - Naming convention with clang-tidy ✅
 - Write README ❌
 - Utilities for assumption functions (&& and ||) ✅
+- Check compiler options for SIO2 (especially -Wall -Werror) ❌

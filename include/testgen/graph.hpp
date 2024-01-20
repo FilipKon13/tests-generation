@@ -26,6 +26,8 @@ class Graph {
     container_t g;
 
 public:
+    Graph() :
+      Graph(0) {}
     explicit Graph(container_t::size_type n) :
       g{n} {}
 

@@ -111,7 +111,7 @@ TEST_CASE("check-assumption-ok") {
     Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
-    test.globalAssumption([](Testcase const & t) { return t.x == 2; });
+    test.assumptionGlobal([](Testcase const & t) { return t.x == 2; });
     CHECK_NOTHROW(test << T);
 }
 
@@ -119,7 +119,7 @@ TEST_CASE("check-assumption-bad") {
     Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
-    test.globalAssumption([](Testcase const & t) { return t.x == 3; });
+    test.assumptionGlobal([](Testcase const & t) { return t.x == 3; });
     CHECK_THROWS(test << T);
 }
 
@@ -127,7 +127,7 @@ TEST_CASE("check-assumption-change-suite") {
     Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
-    test.suiteAssumption([](Testcase const & t) { return t.x == 3; });
+    test.assumptionSuite([](Testcase const & t) { return t.x == 3; });
     SUBCASE("next-suite") {
         test.nextSuite();
         CHECK_NOTHROW(test << T);
@@ -142,7 +142,7 @@ TEST_CASE("check-assumption-change-test") {
     Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
-    test.testAssumption([](Testcase const & t) { return t.x == 3; });
+    test.assumptionTest([](Testcase const & t) { return t.x == 3; });
     SUBCASE("next-suite") {
         test.nextSuite();
         CHECK_NOTHROW(test << T);

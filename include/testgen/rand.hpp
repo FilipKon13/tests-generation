@@ -112,6 +112,10 @@ public:
     GeneratorWrapper & operator=(GeneratorWrapper const &) noexcept = default;
     GeneratorWrapper & operator=(GeneratorWrapper &&) noexcept = default;
 
+    operator T &() {
+        return *gen;
+    }
+
     typename T::result_type operator()() noexcept {
         return *gen();
     }
@@ -125,7 +129,7 @@ public:
 };
 
 template<typename T>
-struct is_generating {    //NOLINT(readability-identifier-naming)
+struct is_generating { //NOLINT(readability-identifier-naming)
 private:
     template<typename V>
     static decltype(static_cast<const Generating<V> &>(std::declval<T>()), std::true_type{})
@@ -137,7 +141,7 @@ public:
 };
 
 template<typename T>
-inline constexpr bool is_generating_v = is_generating<T>::value;    //NOLINT(readability-identifier-naming)
+inline constexpr bool is_generating_v = is_generating<T>::value; //NOLINT(readability-identifier-naming)
 
 template<typename T>
 struct uni_dist {
@@ -156,7 +160,7 @@ public:
     }
     template<typename Gen>
     static T gen(T begin, T end, Gen && gen) {
-        if constexpr(std::is_integral_v<T>) {    // make this better
+        if constexpr(std::is_integral_v<T>) { // make this better
             auto const range = end - begin + 1;
             auto res = gen() % range;
             return res + begin;
@@ -192,7 +196,7 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     using gen_t = std::remove_reference_t<Gen>;
     auto const len = static_cast<typename gen_t::result_type>(std::distance(begin, end));
     auto const range = gen_t::max() - gen_t::min();
-    if(range / len >= len) {    // faster variant
+    if(range / len >= len) { // faster variant
         auto it = begin + 1;
         if(len % 2 == 0) {
             detail::iter_swap(it++, begin + uni_dist(0, 1)(gen));
@@ -203,7 +207,7 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
             detail::iter_swap(it++, begin + p.first);
             detail::iter_swap(it++, begin + p.second);
         }
-    } else {    // for really big ranges
+    } else { // for really big ranges
         for(auto it = begin; ++it != end;) {
             detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
         }

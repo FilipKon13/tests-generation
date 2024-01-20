@@ -9,5 +9,6 @@ foreach(file ${files})
     add_executable(${test_name} ${file})
     target_link_libraries(${test_name} test_main)
     target_compile_definitions(${test_name} PRIVATE TESTRUN)
+    target_compile_options(${test_name} PRIVATE -Wall -Wextra -Wpedantic) # check from TODO
     add_test(NAME ${test_name} COMMAND ${test_name})
 endforeach()

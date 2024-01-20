@@ -83,18 +83,19 @@ public:
         return *this;
     }
 
-    using assumption_t = typename AssumptionsManagerT<TestcaseT>::assumption_t;
-
-    void globalAssumption(assumption_t fun) {
-        assumptions.setGlobal(fun);
+    template<typename AssT>
+    void assumptionGlobal(AssT && fun) {
+        assumptions.setGlobal(std::forward<AssT>(fun));
     }
 
-    void suiteAssumption(assumption_t fun) {
-        assumptions.setSuite(fun);
+    template<typename AssT>
+    void assumptionSuite(AssT && fun) {
+        assumptions.setSuite(std::forward<AssT>(fun));
     }
 
-    void testAssumption(assumption_t fun) {
-        assumptions.setTest(fun);
+    template<typename AssT>
+    void assumptionTest(AssT && fun) {
+        assumptions.setTest(std::forward<AssT>(fun));
     }
 };
 

@@ -8,7 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_compile_options(-Wall -Wextra -Wpedantic) # TODO check for compiler
+# check options with SIO2
+# add_compile_options(-Wall -Wextra -Wpedantic) # TODO check for compiler
 
 file(GLOB includes ${PROJECT_SOURCE_DIR}/include/testgen/*.hpp)
 set(testgen_single ${PROJECT_SOURCE_DIR}/testgen.hpp)
@@ -29,6 +30,8 @@ add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/main.o ${PROJECT_BINARY_DIR}/mai
 add_custom_target(time-trace DEPENDS ${PROJECT_BINARY_DIR}/main.json)
 
 add_custom_target(precommit DEPENDS clang-tidy clang-tidy-test)
+
+add_subdirectory(examples EXCLUDE_FROM_ALL)
 
 enable_testing()
 add_subdirectory(tests)

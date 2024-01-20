@@ -5,6 +5,8 @@
 using namespace test;
 using namespace std;
 
+static_assert(is_default_constructible_v<Graph>);
+
 static_assert(is_nothrow_move_constructible_v<Graph>);
 static_assert(is_nothrow_move_assignable_v<Graph>);
 
@@ -69,7 +71,7 @@ TEST_CASE("test_tree_structure") {
 TEST_CASE("test_tree_path") {
     int const n = 1000;
     gen_type gen{13};
-    Graph const g = Tree(n, 1).generate(gen);    // range == 1 => path
+    Graph const g = Tree(n, 1).generate(gen); // range == 1 => path
     int two{};
     for(int i = 0; i < n; i++) {
         two += g[i].size() == 2 ? 1 : 0;
