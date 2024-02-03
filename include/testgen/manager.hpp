@@ -69,8 +69,9 @@ class OIOIOIManager {
     gen_type source_generator{TESTGEN_SEED};
 
 public:
+    // CUSTOM: change default first suite to 0U if used for example tests
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1U)}, abbr(std::move(abbr)) {}
+      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(/* CUSTOM */ 1U)}, abbr(std::move(abbr)) {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -78,6 +79,10 @@ public:
     ~OIOIOIManager() = default;
     OIOIOIManager & operator=(OIOIOIManager const &) = delete;
     OIOIOIManager & operator=(OIOIOIManager &&) noexcept = default;
+
+    void setMainSeed(gen_type::result_type seed) {
+        source_generator = gen_type(seed);
+    }
 
     [[nodiscard]] constexpr StreamType & stream() const noexcept {
         return curr_test->stream();
@@ -88,19 +93,13 @@ public:
     }
 
     void nextTest() {
-        std::visit(combine{
-                       [this](TestType x) {
-                           this->test(this->curr_index.test + 1, x);
-                       },
-                       [this](unsigned x) {
-                           this->test(this->curr_index.test + 1, x);
-                       }},
+        std::visit([this](auto x) { this->test(this->curr_index.test + 1, x); },
                    curr_index.suite);
     }
 
     void nextSuite() {
         std::visit(combine{
-                       [this]([[maybe_unused]] TestType x) {
+                       [this]([[maybe_unused]] TestType) {
                            this->test(1, 1);
                        },
                        [this](unsigned x) {
@@ -112,21 +111,28 @@ public:
     void test(unsigned test, unsigned suite) {
         curr_index = {test, suite};
         if(changeIfTaken()) { return; }
-        std::string suffix{};
-        auto nr = test - 1;
-        constexpr unsigned SIZE = 'z' - 'a' + 1;
-        do {
-            suffix += 'a' + (nr % SIZE);
-            nr /= SIZE;
-        } while(nr != 0);
-        std::reverse(std::begin(suffix), std::end(suffix));
-        changeToNewStream(abbr + std::to_string(suite) + suffix + ".in");
+        changeToNewStream(getFilename());
     }
 
     void test(unsigned test, TestType ocen) {
         curr_index = {test, ocen};
         if(changeIfTaken()) { return; }
-        changeToNewStream(abbr + std::to_string(test) + "ocen.in");
+        changeToNewStream(getFilename());
+    }
+
+    [[nodiscard]] std::string getFilename() const {
+        if(unsigned const * suite = std::get_if<unsigned>(&curr_index.suite)) {
+            std::string suffix{};
+            auto nr = curr_index.test - 1;
+            constexpr unsigned SIZE = 'z' - 'a' + 1;
+            do {
+                suffix += 'a' + (nr % SIZE);
+                nr /= SIZE;
+            } while(nr != 0);
+            std::reverse(std::begin(suffix), std::end(suffix));
+            return abbr + std::to_string(*suite) + suffix + ".in";
+        }
+        return abbr + std::to_string(curr_index.test) + "ocen.in";
     }
 };
 

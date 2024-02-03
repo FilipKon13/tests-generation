@@ -119,7 +119,6 @@ class GeneratorWrapper {
     T * gen{};
 
 public:
-    GeneratorWrapper() noexcept = default;
     explicit GeneratorWrapper(T & gen) noexcept :
       gen(&gen) {}
     GeneratorWrapper & operator=(T & gen) {
@@ -132,12 +131,12 @@ public:
     GeneratorWrapper & operator=(GeneratorWrapper const &) noexcept = default;
     GeneratorWrapper & operator=(GeneratorWrapper &&) noexcept = default;
 
-    operator T &() {
+    operator T &() { //NOLINT allow nonexplicit use as reference to generator inside
         return *gen;
     }
 
     typename T::result_type operator()() noexcept {
-        return *gen();
+        return (*gen)();
     }
 };
 
@@ -196,11 +195,6 @@ template<typename U, typename V>
 uni_dist(U, V) -> uni_dist<std::common_type_t<U, V>>;
 
 namespace detail {
-template<typename T, typename Gen>
-std::pair<T, T> generate_two(T x, T y, Gen && gen) {
-    T v = uni_dist(0, x * y - 1)(gen);
-    return {v / y, v % y};
-}
 
 template<typename Iter>
 void iter_swap(Iter a, Iter b) {
@@ -213,24 +207,8 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     if(begin == end) {
         return;
     }
-    using gen_t = std::remove_reference_t<Gen>;
-    auto const len = static_cast<typename gen_t::result_type>(std::distance(begin, end));
-    auto const range = gen_t::max() - gen_t::min();
-    if(range / len >= len) { // faster variant
-        auto it = begin + 1;
-        if(len % 2 == 0) {
-            detail::iter_swap(it++, begin + uni_dist(0, 1)(gen));
-        }
-        while(it != end) {
-            auto cnt = it - begin;
-            auto p = detail::generate_two(cnt, cnt + 1, gen);
-            detail::iter_swap(it++, begin + p.first);
-            detail::iter_swap(it++, begin + p.second);
-        }
-    } else { // for really big ranges
-        for(auto it = begin; ++it != end;) {
-            detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
-        }
+    for(auto it = begin; ++it != end;) {
+        detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
     }
 }
 
@@ -633,18 +611,9 @@ auto operator||(Fun1T && fun1, Fun2T && fun2) {
     };
 }
 
-class DummyTestcase {};
-
-template<typename T, typename = void>
-struct has_gen : std::false_type {};
-
-template<typename T>
-struct has_gen<T, std::void_t<decltype(std::declval<T>().gen)>> : std::true_type {};
-
-template<class T>
-inline constexpr bool has_gen_v = has_gen<T>::value; //NOLINT(readability-identifier-naming)
-
 /* ==================== testing.hpp ====================*/
+
+class DummyTestcase {};
 
 template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
 class Testing : private TestcaseManagerT {
@@ -655,11 +624,7 @@ class Testing : private TestcaseManagerT {
 
     TestcaseT updateTestcase() {
         output.set(this->stream());
-        TestcaseT T{};
-        if constexpr(has_gen_v<TestcaseT>) {
-            T.gen = TestcaseManagerT::generator();
-        }
-        return T;
+        return TestcaseT{};
     }
 
     Output output;
@@ -736,11 +701,6 @@ public:
     }
 };
 
-class TestcaseBase {
-public:
-    GeneratorWrapper<gen_type> gen;
-};
-
 /* ==================== manager.hpp ====================*/
 
 enum TestType : uint8_t { OCEN = UINT8_MAX };
@@ -799,8 +759,9 @@ class OIOIOIManager {
     gen_type source_generator{TESTGEN_SEED};
 
 public:
+    // CUSTOM: change default first suite to 0U if used for example tests
     explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(1U)}, abbr(std::move(abbr)) {}
+      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(/* CUSTOM */ 1U)}, abbr(std::move(abbr)) {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -808,6 +769,10 @@ public:
     ~OIOIOIManager() = default;
     OIOIOIManager & operator=(OIOIOIManager const &) = delete;
     OIOIOIManager & operator=(OIOIOIManager &&) noexcept = default;
+
+    void setMainSeed(gen_type::result_type seed) {
+        source_generator = gen_type(seed);
+    }
 
     [[nodiscard]] constexpr StreamType & stream() const noexcept {
         return curr_test->stream();
@@ -818,19 +783,13 @@ public:
     }
 
     void nextTest() {
-        std::visit(combine{
-                       [this](TestType x) {
-                           this->test(this->curr_index.test + 1, x);
-                       },
-                       [this](unsigned x) {
-                           this->test(this->curr_index.test + 1, x);
-                       }},
+        std::visit([this](auto x) { this->test(this->curr_index.test + 1, x); },
                    curr_index.suite);
     }
 
     void nextSuite() {
         std::visit(combine{
-                       [this]([[maybe_unused]] TestType x) {
+                       [this]([[maybe_unused]] TestType) {
                            this->test(1, 1);
                        },
                        [this](unsigned x) {
@@ -842,21 +801,28 @@ public:
     void test(unsigned test, unsigned suite) {
         curr_index = {test, suite};
         if(changeIfTaken()) { return; }
-        std::string suffix{};
-        auto nr = test - 1;
-        constexpr unsigned SIZE = 'z' - 'a' + 1;
-        do {
-            suffix += 'a' + (nr % SIZE);
-            nr /= SIZE;
-        } while(nr != 0);
-        std::reverse(std::begin(suffix), std::end(suffix));
-        changeToNewStream(abbr + std::to_string(suite) + suffix + ".in");
+        changeToNewStream(getFilename());
     }
 
     void test(unsigned test, TestType ocen) {
         curr_index = {test, ocen};
         if(changeIfTaken()) { return; }
-        changeToNewStream(abbr + std::to_string(test) + "ocen.in");
+        changeToNewStream(getFilename());
+    }
+
+    [[nodiscard]] std::string getFilename() const {
+        if(unsigned const * suite = std::get_if<unsigned>(&curr_index.suite)) {
+            std::string suffix{};
+            auto nr = curr_index.test - 1;
+            constexpr unsigned SIZE = 'z' - 'a' + 1;
+            do {
+                suffix += 'a' + (nr % SIZE);
+                nr /= SIZE;
+            } while(nr != 0);
+            std::reverse(std::begin(suffix), std::end(suffix));
+            return abbr + std::to_string(*suite) + suffix + ".in";
+        }
+        return abbr + std::to_string(curr_index.test) + "ocen.in";
     }
 };
 

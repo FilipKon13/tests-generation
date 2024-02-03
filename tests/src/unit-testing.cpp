@@ -72,26 +72,6 @@ TEST_CASE("test_generating_and_standard_types") {
     CHECK(s.str() == "next suite\n2\n3\n1 3 abc\nnext test\n113 def");
 }
 
-TEST_CASE("test-no-gen") {
-    struct testcase {};
-    std::stringstream s;
-    [[maybe_unused]] Testing<TestManager, testcase> const test{s};
-}
-
-TEST_CASE("test-gen") {
-    struct testcase {
-        gen_type gen;
-    };
-    std::stringstream s;
-    [[maybe_unused]] Testing<TestManager, testcase> const test{s};
-}
-
-TEST_CASE("test-get-generator") {
-    std::stringstream s;
-    Testing<TestManager> test{s};
-    [[maybe_unused]] auto gen = test.generator();
-}
-
 class Testcase {
 public:
     int x;
@@ -153,16 +133,17 @@ TEST_CASE("check-assumption-change-test") {
     }
 }
 
-TEST_CASE("test-generator-in-testcase") {
-    std::stringstream s;
-    Testing<TestManager, TestcaseBase> test{s};
-    [[maybe_unused]] auto gen = test.nextSuite();
-    static_assert(std::is_same_v<decltype(gen), TestcaseBase>);
-}
-
-TEST_CASE("test-default") {
+TEST_CASE("test-return-default-testcase-instance") {
     std::stringstream s;
     Testing<TestManager> test{s};
     [[maybe_unused]] auto gen = test.nextSuite();
     static_assert(std::is_same_v<decltype(gen), DummyTestcase>);
+}
+
+TEST_CASE("test-return-default-testcase-instance") {
+    class TestTestcase {};
+    std::stringstream s;
+    Testing<TestManager, TestTestcase> test{s};
+    [[maybe_unused]] auto gen = test.nextSuite();
+    static_assert(std::is_same_v<decltype(gen), TestTestcase>);
 }

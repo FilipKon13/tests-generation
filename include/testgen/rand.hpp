@@ -99,7 +99,6 @@ class GeneratorWrapper {
     T * gen{};
 
 public:
-    GeneratorWrapper() noexcept = default;
     explicit GeneratorWrapper(T & gen) noexcept :
       gen(&gen) {}
     GeneratorWrapper & operator=(T & gen) {
@@ -112,12 +111,12 @@ public:
     GeneratorWrapper & operator=(GeneratorWrapper const &) noexcept = default;
     GeneratorWrapper & operator=(GeneratorWrapper &&) noexcept = default;
 
-    operator T &() {
+    operator T &() { //NOLINT allow nonexplicit use as reference to generator inside
         return *gen;
     }
 
     typename T::result_type operator()() noexcept {
-        return *gen();
+        return (*gen)();
     }
 };
 
@@ -176,11 +175,6 @@ template<typename U, typename V>
 uni_dist(U, V) -> uni_dist<std::common_type_t<U, V>>;
 
 namespace detail {
-template<typename T, typename Gen>
-std::pair<T, T> generate_two(T x, T y, Gen && gen) {
-    T v = uni_dist(0, x * y - 1)(gen);
-    return {v / y, v % y};
-}
 
 template<typename Iter>
 void iter_swap(Iter a, Iter b) {
@@ -193,24 +187,8 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
     if(begin == end) {
         return;
     }
-    using gen_t = std::remove_reference_t<Gen>;
-    auto const len = static_cast<typename gen_t::result_type>(std::distance(begin, end));
-    auto const range = gen_t::max() - gen_t::min();
-    if(range / len >= len) { // faster variant
-        auto it = begin + 1;
-        if(len % 2 == 0) {
-            detail::iter_swap(it++, begin + uni_dist(0, 1)(gen));
-        }
-        while(it != end) {
-            auto cnt = it - begin;
-            auto p = detail::generate_two(cnt, cnt + 1, gen);
-            detail::iter_swap(it++, begin + p.first);
-            detail::iter_swap(it++, begin + p.second);
-        }
-    } else { // for really big ranges
-        for(auto it = begin; ++it != end;) {
-            detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
-        }
+    for(auto it = begin; ++it != end;) {
+        detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
     }
 }
 

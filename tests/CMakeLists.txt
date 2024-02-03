@@ -1,6 +1,6 @@
 add_library (test_main OBJECT src/unit.cpp)
 target_include_directories(test_main PUBLIC ${PROJECT_SOURCE_DIR}/include)
-file(GLOB files src/unit-*.cpp)
+file(GLOB files CONFIGURE_DEPENDS src/unit-*.cpp)
 
 foreach(file ${files})
     cmake_path(GET file FILENAME test_name)

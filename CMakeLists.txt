@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # check options with SIO2
 # add_compile_options(-Wall -Wextra -Wpedantic) # TODO check for compiler
 
-file(GLOB includes ${PROJECT_SOURCE_DIR}/include/testgen/*.hpp)
+file(GLOB includes CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/include/testgen/*.hpp)
 set(testgen_single ${PROJECT_SOURCE_DIR}/testgen.hpp)
 
 add_custom_command(OUTPUT ${testgen_single}

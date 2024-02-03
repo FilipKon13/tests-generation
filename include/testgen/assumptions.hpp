@@ -61,17 +61,6 @@ auto operator||(Fun1T && fun1, Fun2T && fun2) {
     };
 }
 
-class DummyTestcase {};
-
-template<typename T, typename = void>
-struct has_gen : std::false_type {};
-
-template<typename T>
-struct has_gen<T, std::void_t<decltype(std::declval<T>().gen)>> : std::true_type {};
-
-template<class T>
-inline constexpr bool has_gen_v = has_gen<T>::value; //NOLINT(readability-identifier-naming)
-
 } /* namespace test */
 
 #endif /* TESTGEN_ASSUMPTIONS_HPP_ */

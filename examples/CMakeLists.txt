@@ -1,4 +1,4 @@
-file(GLOB files *.cpp)
+file(GLOB files CONFIGURE_DEPENDS *.cpp)
 
 foreach(file ${files})
     cmake_path(GET file FILENAME example_name)

@@ -28,3 +28,13 @@
 - Write README ❌
 - Utilities for assumption functions (&& and ||) ✅
 - Check compiler options for SIO2 (especially -Wall -Werror) ❌
+- Ability to check conditions without << ❌
+- More examples ❌
+- More Managers ❌
+- Add LICENSE and link to this repo to merge.py ❌
+- Suite-wide existential tests ❌
+- get test filename accesser ✅
+- Print test name while generating ❌
+- Skipping testcases (e.g. already generated one) ❌
+- Changing seeding for tests instead of global constant ❌
+- Write about CUSTOM comments ❌

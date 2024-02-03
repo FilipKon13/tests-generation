@@ -63,6 +63,7 @@ int main() {
         Graph p1 = Path(n / 2).generate();
         Graph p2 = test(Tree(n / 2));
         // result of below is stable, i.e. does not depend on what was generated in previous testcases
+        // or any changes in it
         test << Testcase{n, merge(p1, p2, {{0, 0}})};
     }
 
@@ -73,6 +74,15 @@ int main() {
         test.assumptionTest([](Testcase const & t) { // we can take Testcase by value or by reference
             return t.n == 1;
         });
+        // assumption from above will not be used in the next test (even if in the same suite)
         test << Testcase{1, Graph(1)};
+    }
+    { // gra2b.in
+
+        auto tc = test.nextTest(); // get testcase from nextTest function
+        auto & [n, G] = tc;
+        n = 1000;
+        G = test(Tree(n));
+        test << tc;
     }
 }

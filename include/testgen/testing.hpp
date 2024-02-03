@@ -9,6 +9,8 @@
 
 namespace test {
 
+class DummyTestcase {};
+
 template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
 class Testing : private TestcaseManagerT {
     template<typename T>
@@ -18,11 +20,7 @@ class Testing : private TestcaseManagerT {
 
     TestcaseT updateTestcase() {
         output.set(this->stream());
-        TestcaseT T{};
-        if constexpr(has_gen_v<TestcaseT>) {
-            T.gen = TestcaseManagerT::generator();
-        }
-        return T;
+        return TestcaseT{};
     }
 
     Output output;
@@ -97,11 +95,6 @@ public:
     void assumptionTest(AssT && fun) {
         assumptions.setTest(std::forward<AssT>(fun));
     }
-};
-
-class TestcaseBase {
-public:
-    GeneratorWrapper<gen_type> gen;
 };
 
 } /* namespace test */

@@ -185,12 +185,3 @@ TEST_CASE("test-utility-logic") {
     CHECK_UNARY((true_l || false_l)(1));
     CHECK_UNARY_FALSE((false_l || false_l)(1));
 }
-
-class TestcaseGen {
-public:
-    int gen;
-};
-
-static_assert(!has_gen_v<int>);
-static_assert(!has_gen_v<DummyTestcase>);
-static_assert(has_gen_v<TestcaseGen>);

@@ -105,3 +105,7 @@ TEST_CASE("test_ocen-to-next-suite") {
     manager.test(3, 2);
     CHECK(manager.stream().str() == "pro2c.in test");
 }
+
+// TODO(FilipKon13): test default argument for testing
+
+// TODO(FilipKon13): test getFilename functionality
