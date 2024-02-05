@@ -29,9 +29,11 @@ add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/main.o ${PROJECT_BINARY_DIR}/mai
 
 add_custom_target(time-trace DEPENDS ${PROJECT_BINARY_DIR}/main.json)
 
-add_custom_target(precommit DEPENDS clang-tidy clang-tidy-test)
+add_custom_target(example-all)
 
 add_subdirectory(examples EXCLUDE_FROM_ALL)
+
+add_custom_target(precommit DEPENDS clang-tidy clang-tidy-test example-all)
 
 enable_testing()
 add_subdirectory(tests)
