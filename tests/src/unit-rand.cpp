@@ -27,3 +27,47 @@ TEST_CASE("test-use-wrapper") {
     CHECK_EQ(g2(), g1());
     CHECK_EQ(g2(), wrapped());
 }
+
+TEST_CASE("test-rng-utilities-custom") {
+    struct rng : RngUtilities<rng> {
+        gen_type g{15};
+        gen_type & generator() {
+            return g;
+        }
+    } rng;
+    std::array V = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    auto copy = V;
+    rng.shuffle(std::begin(V), std::end(V));
+    CHECK_NE(V, copy); // should pass 1/10!
+    std::sort(std::begin(V), std::end(V));
+    CHECK_EQ(V, copy);
+}
+
+TEST_CASE("test-rng-utilities-wrapper") {
+    gen_type g{17};
+    struct rng : public GeneratorWrapper<gen_type>, public RngUtilities<rng> {
+        using GeneratorWrapper::GeneratorWrapper;
+    } rng{g};
+    std::array V = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    auto copy = V;
+    rng.shuffle(std::begin(V), std::end(V));
+    CHECK_NE(V, copy); // should pass 1/10!
+    std::sort(std::begin(V), std::end(V));
+    CHECK_EQ(V, copy);
+}
+
+TEST_CASE("test-generator-wrapper-algo") {
+    gen_type g{26};
+    GeneratorWrapper<gen_type> wrapper{g};
+    std::array V = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    auto copy = V;
+    shuffle_sequence(std::begin(V), std::end(V), wrapper);
+    CHECK_NE(V, copy); // should pass 1/10!
+    std::sort(std::begin(V), std::end(V));
+    CHECK_EQ(V, copy);
+}
+
+TEST_CASE("test-generator-wrapper-deduction") {
+    gen_type const g{26};
+    static_assert(std::is_same_v<decltype(GeneratorWrapper{g}), GeneratorWrapper<const gen_type>>);
+}

@@ -2,11 +2,10 @@
 #define TESTGEN_MANAGER_HPP_
 
 #include "rand.hpp"
-#include "testing.hpp"
 
 #include <algorithm>
 #include <cstdlib>
-#include <fstream>
+#include <iostream>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
@@ -45,6 +44,7 @@ class OIOIOIManager {
     }
 
     void changeToNewStream(std::string const & name) {
+        std::cout << "Printing to: " << name << '\n';
         auto const it = cases.try_emplace(curr_index,
                                           std::piecewise_construct,
                                           std::forward_as_tuple(name),

@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdint>
 #include <cstdlib>
-#include <fstream>
 #include <functional>
 #include <initializer_list>
 #include <iostream>
@@ -22,10 +21,7 @@ namespace test {
 /* ==================== util.hpp ====================*/
 
 inline void assume(bool value) {
-    if(!value) {
-        std::cerr << "Assumption failed!\n";
-        exit(EXIT_FAILURE);
-    }
+    if(!value) { exit(EXIT_FAILURE); }
 }
 
 /* ==================== rand.hpp ====================*/
@@ -59,9 +55,10 @@ private:
 
     void jump() {
         static constexpr std::array JUMP = {0x180ec6d33cfd0abaUL, 0xd5a61266f0c9392cUL, 0xa9582618e03fc9aaUL, 0x39abdc4529b1661cUL};
+        static constexpr unsigned RESULT_TYPE_WIDTH = 64;
         std::array<result_type, 4> t{};
         for(auto jump : JUMP) {
-            for(unsigned b = 0; b < UINT64_WIDTH; b++) {
+            for(unsigned b = 0; b < RESULT_TYPE_WIDTH; b++) {
                 if((jump & UINT64_C(1) << b) != 0) {
                     t[0] ^= s[0];
                     t[1] ^= s[1];
@@ -137,6 +134,10 @@ public:
 
     typename T::result_type operator()() noexcept {
         return (*gen)();
+    }
+
+    T & generator() {
+        return *gen;
     }
 };
 
@@ -214,6 +215,16 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
 
 template<typename T>
 struct uniform_real_distribution {
+};
+
+/* CRTP, assumes Derived has 'generator()' method/field */
+template<typename Derived>
+class RngUtilities {
+public:
+    template<typename Iter>
+    void shuffle(Iter b, Iter e) {
+        shuffle_sequence(b, e, static_cast<Derived *>(this)->generator());
+    }
 };
 
 template<typename... T>
@@ -554,153 +565,6 @@ void printEdgesAsTree(std::ostream & s, Graph const & g, int shift = 0) {
     }
 }
 
-/* ==================== assumptions.hpp ====================*/
-
-template<typename TestcaseT>
-class AssumptionManager {
-public:
-    // using assumption_t = bool (*)(TestcaseT const &);
-    using assumption_t = std::function<bool(TestcaseT const &)>;
-
-private:
-    static bool empty(TestcaseT const & /*unused*/) {
-        return true;
-    }
-    assumption_t global = empty;
-    assumption_t suite = empty;
-    assumption_t test = empty;
-
-public:
-    template<typename AssT>
-    void setGlobal(AssT && fun) {
-        global = std::forward<AssT>(fun);
-    }
-    template<typename AssT>
-    void setSuite(AssT && fun) {
-        suite = std::forward<AssT>(fun);
-    }
-    template<typename AssT>
-    void setTest(AssT && fun) {
-        test = std::forward<AssT>(fun);
-    }
-    void resetGlobal() {
-        global = empty;
-    }
-    void resetSuite() {
-        suite = empty;
-    }
-    void resetTest() {
-        test = empty;
-    }
-    bool check(TestcaseT const & testcase) {
-        return test(testcase) && suite(testcase) && global(testcase);
-    }
-};
-
-template<typename Fun1T, typename Fun2T>
-auto operator&&(Fun1T && fun1, Fun2T && fun2) {
-    return [f1 = std::forward<Fun1T>(fun1), f2 = std::forward<Fun2T>(fun2)](auto const & testcase) mutable {
-        return f1(testcase) && f2(testcase);
-    };
-}
-
-template<typename Fun1T, typename Fun2T>
-auto operator||(Fun1T && fun1, Fun2T && fun2) {
-    return [f1 = std::forward<Fun1T>(fun1), f2 = std::forward<Fun2T>(fun2)](auto const & testcase) mutable {
-        return f1(testcase) || f2(testcase);
-    };
-}
-
-/* ==================== testing.hpp ====================*/
-
-class DummyTestcase {};
-
-template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
-class Testing : private TestcaseManagerT {
-    template<typename T>
-    auto generate(Generating<T> const & schema) {
-        return schema.generate(TestcaseManagerT::generator());
-    }
-
-    TestcaseT updateTestcase() {
-        output.set(this->stream());
-        return TestcaseT{};
-    }
-
-    Output output;
-    AssumptionsManagerT<TestcaseT> assumptions;
-
-public:
-    using TestcaseManagerT::TestcaseManagerT;
-
-    Testing(const Testing &) = delete;
-    Testing(Testing &&) = delete;
-    Testing & operator=(const Testing &) = delete;
-    Testing & operator=(Testing &&) = delete;
-    ~Testing() = default;
-
-    GeneratorWrapper<gen_type> generator() {
-        return GeneratorWrapper<gen_type>{TestcaseManagerT::generator()};
-    }
-
-    TestcaseT nextSuite() {
-        TestcaseManagerT::nextSuite();
-        assumptions.resetSuite();
-        assumptions.resetTest();
-        return updateTestcase();
-    }
-
-    TestcaseT nextTest() {
-        TestcaseManagerT::nextTest();
-        assumptions.resetTest();
-        return updateTestcase();
-    }
-
-    template<typename... T>
-    TestcaseT test(T &&... args) {
-        TestcaseManagerT::test(std::forward<T>(args)...);
-        return updateTestcase();
-    }
-
-    template<typename... T>
-    void print(T const &... args) {
-        output.dumpOutput((*this)(args)...);
-    }
-
-    template<typename T>
-    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
-        if constexpr(is_generating<T>::value) {
-            return generate(t);
-        } else {
-            return t;
-        }
-    }
-
-    template<typename T>
-    Testing & operator<<(const T & out) {
-        if constexpr(std::is_same_v<T, TestcaseT>) {
-            assume(assumptions.check(out));
-        }
-        output << (*this)(out);
-        return *this;
-    }
-
-    template<typename AssT>
-    void assumptionGlobal(AssT && fun) {
-        assumptions.setGlobal(std::forward<AssT>(fun));
-    }
-
-    template<typename AssT>
-    void assumptionSuite(AssT && fun) {
-        assumptions.setSuite(std::forward<AssT>(fun));
-    }
-
-    template<typename AssT>
-    void assumptionTest(AssT && fun) {
-        assumptions.setTest(std::forward<AssT>(fun));
-    }
-};
-
 /* ==================== manager.hpp ====================*/
 
 enum TestType : uint8_t { OCEN = UINT8_MAX };
@@ -735,6 +599,7 @@ class OIOIOIManager {
     }
 
     void changeToNewStream(std::string const & name) {
+        std::cout << "Printing to: " << name << '\n';
         auto const it = cases.try_emplace(curr_index,
                                           std::piecewise_construct,
                                           std::forward_as_tuple(name),
@@ -823,6 +688,165 @@ public:
             return abbr + std::to_string(*suite) + suffix + ".in";
         }
         return abbr + std::to_string(curr_index.test) + "ocen.in";
+    }
+};
+
+/* ==================== assumptions.hpp ====================*/
+
+template<typename TestcaseT>
+class AssumptionManager {
+public:
+    // using assumption_t = bool (*)(TestcaseT const &);
+    using assumption_t = std::function<bool(TestcaseT const &)>;
+
+private:
+    static bool empty(TestcaseT const & /*unused*/) {
+        return true;
+    }
+    assumption_t global = empty;
+    assumption_t suite = empty;
+    assumption_t test = empty;
+
+public:
+    template<typename AssT>
+    void setGlobal(AssT && fun) {
+        global = std::forward<AssT>(fun);
+    }
+    template<typename AssT>
+    void setSuite(AssT && fun) {
+        suite = std::forward<AssT>(fun);
+    }
+    template<typename AssT>
+    void setTest(AssT && fun) {
+        test = std::forward<AssT>(fun);
+    }
+    void resetGlobal() {
+        global = empty;
+    }
+    void resetSuite() {
+        suite = empty;
+    }
+    void resetTest() {
+        test = empty;
+    }
+    bool check(TestcaseT const & testcase) {
+        return test(testcase) && suite(testcase) && global(testcase);
+    }
+};
+
+template<typename Fun1T, typename Fun2T>
+auto operator&&(Fun1T && fun1, Fun2T && fun2) {
+    return [f1 = std::forward<Fun1T>(fun1), f2 = std::forward<Fun2T>(fun2)](auto const & testcase) mutable {
+        return f1(testcase) && f2(testcase);
+    };
+}
+
+template<typename Fun1T, typename Fun2T>
+auto operator||(Fun1T && fun1, Fun2T && fun2) {
+    return [f1 = std::forward<Fun1T>(fun1), f2 = std::forward<Fun2T>(fun2)](auto const & testcase) mutable {
+        return f1(testcase) || f2(testcase);
+    };
+}
+
+/* ==================== testing.hpp ====================*/
+
+class DummyTestcase {};
+
+template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
+class Testing : private TestcaseManagerT, public RngUtilities<Testing<TestcaseManagerT, TestcaseT, AssumptionsManagerT>> {
+    template<typename T>
+    auto generate(Generating<T> const & schema) {
+        return schema.generate(generator());
+    }
+
+    TestcaseT updateTestcase() {
+        output.set(this->stream());
+        return TestcaseT{};
+    }
+
+    Output output;
+    AssumptionsManagerT<TestcaseT> assumptions;
+
+public:
+    using TestcaseManagerT::TestcaseManagerT;
+
+    Testing(const Testing &) = delete;
+    Testing(Testing &&) = delete;
+    Testing & operator=(const Testing &) = delete;
+    Testing & operator=(Testing &&) = delete;
+    ~Testing() = default;
+
+    GeneratorWrapper<gen_type> generator() {
+        return GeneratorWrapper<gen_type>{TestcaseManagerT::generator()};
+    }
+
+    TestcaseT nextSuite() {
+        TestcaseManagerT::nextSuite();
+        assumptions.resetSuite();
+        assumptions.resetTest();
+        return updateTestcase();
+    }
+
+    TestcaseT nextTest() {
+        TestcaseManagerT::nextTest();
+        assumptions.resetTest();
+        return updateTestcase();
+    }
+
+    template<typename... T>
+    TestcaseT test(T &&... args) {
+        TestcaseManagerT::test(std::forward<T>(args)...);
+        return updateTestcase();
+    }
+
+    template<typename... T>
+    void print(T const &... args) {
+        output.dumpOutput((*this)(args)...);
+    }
+
+    template<typename T>
+    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
+        if constexpr(is_generating<T>::value) {
+            return generate(t);
+        } else {
+            return t;
+        }
+    }
+
+    template<typename T>
+    Testing & operator<<(T const & out) {
+        if constexpr(std::is_same_v<T, TestcaseT>) {
+            if(!checkSoft(out)) {
+                std::cerr << "Assumption failed for " << this->TestcaseManagerT::getFilename() << '\n';
+                assume(false);
+            }
+        }
+        output << (*this)(out);
+        return *this;
+    }
+
+    template<typename AssT>
+    void assumptionGlobal(AssT && fun) {
+        assumptions.setGlobal(std::forward<AssT>(fun));
+    }
+
+    template<typename AssT>
+    void assumptionSuite(AssT && fun) {
+        assumptions.setSuite(std::forward<AssT>(fun));
+    }
+
+    template<typename AssT>
+    void assumptionTest(AssT && fun) {
+        assumptions.setTest(std::forward<AssT>(fun));
+    }
+
+    bool checkSoft(TestcaseT const & tc) {
+        return assumptions.check(tc);
+    }
+
+    bool checkHard(TestcaseT const & tc) {
+        assume(checkHard(tc));
+        return true;
     }
 };
 

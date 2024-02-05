@@ -24,6 +24,9 @@ public:
     gen_type & generator() {
         return m_gen;
     }
+    static char const * getFilename() {
+        return "mock";
+    }
 };
 
 class TestGenerating : public Generating<int> {
@@ -146,4 +149,11 @@ TEST_CASE("test-return-default-testcase-instance") {
     Testing<TestManager, TestTestcase> test{s};
     [[maybe_unused]] auto gen = test.nextSuite();
     static_assert(std::is_same_v<decltype(gen), TestTestcase>);
+}
+
+TEST_CASE("test-rng-utilities") {
+    std::stringstream s;
+    Testing<TestManager> const test{s};
+    using T = std::remove_cv_t<decltype(test)>;
+    static_assert(std::is_base_of_v<RngUtilities<T>, T>);
 }

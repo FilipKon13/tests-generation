@@ -106,6 +106,34 @@ TEST_CASE("test_ocen-to-next-suite") {
     CHECK(manager.stream().str() == "pro2c.in test");
 }
 
-// TODO(FilipKon13): test default argument for testing
+TEST_CASE("test-get-filename") {
+    OIOIOIManager<TestStream> manager("pro", true);
+    manager.nextTest();
 
-// TODO(FilipKon13): test getFilename functionality
+    CHECK(manager.getFilename() == "pro1ocen.in");
+    manager.nextTest();
+    CHECK(manager.getFilename() == "pro2ocen.in");
+    manager.nextTest();
+    CHECK(manager.getFilename() == "pro3ocen.in");
+
+    manager.nextSuite();
+
+    CHECK(manager.getFilename() == "pro1a.in");
+    manager.nextTest();
+    CHECK(manager.getFilename() == "pro1b.in");
+    manager.nextTest();
+    CHECK(manager.getFilename() == "pro1c.in");
+
+    manager.nextSuite();
+
+    CHECK(manager.getFilename() == "pro2a.in");
+    manager.nextTest();
+    CHECK(manager.getFilename() == "pro2b.in");
+    manager.nextTest();
+    CHECK(manager.getFilename() == "pro2c.in");
+
+    manager.test(1, 2);
+    CHECK(manager.getFilename() == "pro2a.in");
+    manager.test(3, 2);
+    CHECK(manager.getFilename() == "pro2c.in");
+}

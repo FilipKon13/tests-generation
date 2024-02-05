@@ -5,17 +5,17 @@
 #include "output.hpp"
 #include "rand.hpp"
 
-#include <ostream>
+#include <iostream>
 
 namespace test {
 
 class DummyTestcase {};
 
 template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
-class Testing : private TestcaseManagerT {
+class Testing : private TestcaseManagerT, public RngUtilities<Testing<TestcaseManagerT, TestcaseT, AssumptionsManagerT>> {
     template<typename T>
     auto generate(Generating<T> const & schema) {
-        return schema.generate(TestcaseManagerT::generator());
+        return schema.generate(generator());
     }
 
     TestcaseT updateTestcase() {
@@ -73,9 +73,12 @@ public:
     }
 
     template<typename T>
-    Testing & operator<<(const T & out) {
+    Testing & operator<<(T const & out) {
         if constexpr(std::is_same_v<T, TestcaseT>) {
-            assume(assumptions.check(out));
+            if(!checkSoft(out)) {
+                std::cerr << "Assumption failed for " << this->TestcaseManagerT::getFilename() << '\n';
+                assume(false);
+            }
         }
         output << (*this)(out);
         return *this;
@@ -94,6 +97,15 @@ public:
     template<typename AssT>
     void assumptionTest(AssT && fun) {
         assumptions.setTest(std::forward<AssT>(fun));
+    }
+
+    bool checkSoft(TestcaseT const & tc) {
+        return assumptions.check(tc);
+    }
+
+    bool checkHard(TestcaseT const & tc) {
+        assume(checkHard(tc));
+        return true;
     }
 };
 

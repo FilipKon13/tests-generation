@@ -5,9 +5,7 @@
 
 #include <stdexcept>
 inline void assume(bool value) {
-    if(!value) {
-        throw std::runtime_error("Assumption failed!");
-    }
+    if(!value) { throw std::runtime_error("Assumption failed!"); }
 }
 
 #else
@@ -16,10 +14,7 @@ inline void assume(bool value) {
 #include <iostream>
 
 inline void assume(bool value) {
-    if(!value) {
-        std::cerr << "Assumption failed!\n";
-        exit(EXIT_FAILURE);
-    }
+    if(!value) { exit(EXIT_FAILURE); }
 }
 
 #endif

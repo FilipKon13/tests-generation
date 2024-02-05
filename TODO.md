@@ -33,8 +33,13 @@
 - More Managers ❌
 - Add LICENSE and link to this repo to merge.py ❌
 - Suite-wide existential tests ❌
+- Global-wide existential tests ❌
 - get test filename accesser ✅
-- Print test name while generating ❌
-- Skipping testcases (e.g. already generated one) ❌
+- Print test name while generating and on error ✅
+- Skipping testcases (e.g. already generated ones) ❌
 - Changing seeding for tests instead of global constant ❌
 - Write about CUSTOM comments ❌
+- rng utilities for Testing class with use of current generator ✅
+- assume constexpr ❌
+- check UINT64_WIDTH with other systems ✅
+- safe version of testing or manager (probably manager) ❌

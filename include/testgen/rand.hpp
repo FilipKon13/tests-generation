@@ -39,9 +39,10 @@ private:
 
     void jump() {
         static constexpr std::array JUMP = {0x180ec6d33cfd0abaUL, 0xd5a61266f0c9392cUL, 0xa9582618e03fc9aaUL, 0x39abdc4529b1661cUL};
+        static constexpr unsigned RESULT_TYPE_WIDTH = 64;
         std::array<result_type, 4> t{};
         for(auto jump : JUMP) {
-            for(unsigned b = 0; b < UINT64_WIDTH; b++) {
+            for(unsigned b = 0; b < RESULT_TYPE_WIDTH; b++) {
                 if((jump & UINT64_C(1) << b) != 0) {
                     t[0] ^= s[0];
                     t[1] ^= s[1];
@@ -117,6 +118,10 @@ public:
 
     typename T::result_type operator()() noexcept {
         return (*gen)();
+    }
+
+    T & generator() {
+        return *gen;
     }
 };
 
@@ -194,6 +199,16 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
 
 template<typename T>
 struct uniform_real_distribution {
+};
+
+/* CRTP, assumes Derived has 'generator()' method/field */
+template<typename Derived>
+class RngUtilities {
+public:
+    template<typename Iter>
+    void shuffle(Iter b, Iter e) {
+        shuffle_sequence(b, e, static_cast<Derived *>(this)->generator());
+    }
 };
 
 template<typename... T>
