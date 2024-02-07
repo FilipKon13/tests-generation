@@ -10,7 +10,6 @@
 #include <iostream>
 #include <numeric>
 #include <ostream>
-#include <stdexcept>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
@@ -588,7 +587,12 @@ struct index {
 };
 } /* namespace detail */
 
-template<typename StreamType = std::ofstream>
+enum Verbocity {
+    SILENT = 0,
+    VERBOSE = 1
+};
+
+template<Verbocity Verbose = VERBOSE, typename StreamType = std::ofstream>
 class OIOIOIManager {
     bool changeIfTaken() {
         if(auto const it = cases.find(curr_index); it != cases.end()) {
@@ -599,7 +603,9 @@ class OIOIOIManager {
     }
 
     void changeToNewStream(std::string const & name) {
-        std::cout << "Printing to: " << name << '\n';
+        if constexpr(Verbose == Verbocity::VERBOSE) {
+            std::cout << "Printing to: " << name << '\n';
+        }
         auto const it = cases.try_emplace(curr_index,
                                           std::piecewise_construct,
                                           std::forward_as_tuple(name),

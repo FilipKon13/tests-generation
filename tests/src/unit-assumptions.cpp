@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest.h>
 
 #include <testgen/assumptions.hpp>
 using namespace std;

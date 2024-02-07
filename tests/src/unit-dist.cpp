@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest.h>
 #include <algorithm>
 
 #include <testgen/rand.hpp>

@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest.h>
 #include <set>
 
 #include <testgen/graph.hpp>

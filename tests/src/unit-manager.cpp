@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest.h>
 #include <sstream>
 
 #include <testgen/manager.hpp>
@@ -13,7 +13,7 @@ public:
 };
 
 TEST_CASE("test_non_ocen") {
-    OIOIOIManager<TestStream> manager("pro");
+    OIOIOIManager<SILENT, TestStream> manager("pro");
     manager.nextTest();
 
     CHECK(manager.stream().str() == "pro1a.in");
@@ -47,7 +47,7 @@ TEST_CASE("test_non_ocen") {
 }
 
 TEST_CASE("test_ocen") {
-    OIOIOIManager<TestStream> manager("pro", true);
+    OIOIOIManager<SILENT, TestStream> manager("pro", true);
     manager.nextTest();
 
     CHECK(manager.stream().str() == "pro1ocen.in");
@@ -81,7 +81,7 @@ TEST_CASE("test_ocen") {
 }
 
 TEST_CASE("test_ocen-to-next-suite") {
-    OIOIOIManager<TestStream> manager("pro", true);
+    OIOIOIManager<SILENT, TestStream> manager("pro", true);
     manager.nextSuite();
 
     CHECK(manager.stream().str() == "pro1a.in");
@@ -107,7 +107,7 @@ TEST_CASE("test_ocen-to-next-suite") {
 }
 
 TEST_CASE("test-get-filename") {
-    OIOIOIManager<TestStream> manager("pro", true);
+    OIOIOIManager<SILENT, TestStream> manager("pro", true);
     manager.nextTest();
 
     CHECK(manager.getFilename() == "pro1ocen.in");

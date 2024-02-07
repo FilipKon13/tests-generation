@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest.h>
 #include <sstream>
 #include <type_traits>
 
@@ -98,15 +98,15 @@ TEST_CASE("check-assumption-ok") {
     CHECK_NOTHROW(test << T);
 }
 
-TEST_CASE("check-assumption-bad") {
+DEATH_TEST("check-assumption-bad") {
     Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
     test.assumptionGlobal([](Testcase const & t) { return t.x == 3; });
-    CHECK_THROWS(test << T);
+    CHECK_DEATH(test << T);
 }
 
-TEST_CASE("check-assumption-change-suite") {
+DEATH_TEST("check-assumption-change-suite") {
     Testcase const T{2};
     std::stringstream s;
     Testing<TestManager, Testcase> test{s};
@@ -117,7 +117,7 @@ TEST_CASE("check-assumption-change-suite") {
     }
     SUBCASE("next-test") {
         test.nextTest();
-        CHECK_THROWS(test << T);
+        CHECK_DEATH(test << T);
     }
 }
 
