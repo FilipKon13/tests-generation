@@ -1,6 +1,6 @@
 add_library (test_main OBJECT src/unit.cpp)
 target_include_directories(test_main PUBLIC ${PROJECT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_definitions(test_main PUBLIC DOCTEST_CONFIG_SUPER_FAST_ASSERTS TESTRUN)
+target_compile_definitions(test_main PUBLIC DOCTEST_CONFIG_SUPER_FAST_ASSERTS)
 file(GLOB files CONFIGURE_DEPENDS src/unit-*.cpp)
 include(CheckIncludeFiles)
 

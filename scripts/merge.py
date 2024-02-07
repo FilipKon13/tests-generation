@@ -45,17 +45,8 @@ def dfs(file : file, output):
     output.write("=" * 20)
     output.write("*/\n\n");
     last = True
-    inside_testing = False
     with open(file.path, 'r') as inp:
         for line in inp:
-            if inside_testing:
-                if line.startswith("#else"):
-                    inside_testing = False
-                continue
-            else:
-                if "TESTRUN" in line:
-                    inside_testing = True
-                    continue
             if line == '\n':
                 if last:
                     continue
@@ -67,6 +58,7 @@ def dfs(file : file, output):
                 output.write(line)
 
 with open(TARGET_PATH, 'w') as out:
+    out.write("\n/* Source: https://github.com/FilipKon13/tests-generation */\n\n")
     out.write("#ifndef TESTGEN_HPP_\n")
     out.write("#define TESTGEN_HPP_\n\n")
     for include in sorted(includes_set):

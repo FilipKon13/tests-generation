@@ -1,3 +1,6 @@
+
+/* Source: https://github.com/FilipKon13/tests-generation */
+
 #ifndef TESTGEN_HPP_
 #define TESTGEN_HPP_
 
