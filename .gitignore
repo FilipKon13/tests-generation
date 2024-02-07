@@ -1,4 +1,5 @@
 .*
+!.github
 !.gitignore
 !.clang-tidy
 !.clang-format
