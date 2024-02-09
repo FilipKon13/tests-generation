@@ -29,6 +29,7 @@
 #include <iostream>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 namespace doctest {
@@ -39,15 +40,15 @@ class SignalManager {
     sigset_t old_set;
     inline static void handler(int sig_nr) {
         if(sig_nr == SIGUSR1) { // test failed
-            fail = 1;
             return;
         }
         // test passed (sig_nr == SIGCHLD)
+        waitpid(-1, &status, WNOHANG); // handle zombie process
     }
 
 public:
     // has to be inline because of ODR (this is header file)
-    static inline volatile int fail = 0;
+    static inline int status = 0;
     SignalManager() {
         sigset_t sg;
         sigemptyset(&sg);
@@ -56,7 +57,7 @@ public:
         sigprocmask(SIG_BLOCK, &sg, &old_set);
     }
     void setHandlers() {
-        fail = 0;
+        status = 0;
         struct sigaction ac;
         ac.sa_flags = 0;
         sigemptyset(&ac.sa_mask);
@@ -101,7 +102,7 @@ void check_death(Func && fun) {
     // parent
     context.setHandlers();
     context.waitForSignal();     // SIGUSR1 or SIGCHLD
-    if(SignalManager::fail) {    // test failed
+    if(!SignalManager::status) { // test failed
         kill(pid, SIGKILL);      // kill child
         context.waitForSignal(); // wait for SIGCHLD
         FAIL("Death test failed");

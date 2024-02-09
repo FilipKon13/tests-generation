@@ -4,7 +4,7 @@ target_compile_definitions(test_main PUBLIC DOCTEST_CONFIG_SUPER_FAST_ASSERTS)
 file(GLOB files CONFIGURE_DEPENDS src/unit-*.cpp)
 include(CheckIncludeFiles)
 
-check_include_files("signal.h;sys/types.h;unistd.h" IS_UNIX_LIKE)
+check_include_files("signal.h;sys/types.h;sys/wait.h;unistd.h" IS_UNIX_LIKE)
 
 if(IS_UNIX_LIKE)
     target_compile_definitions(test_main PUBLIC DEATH_TESTS_ENABLED)
