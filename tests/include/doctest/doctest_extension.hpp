@@ -26,6 +26,7 @@
 
 #ifdef DEATH_TESTS_ENABLED
 
+#include <fcntl.h>
 #include <iostream>
 #include <signal.h>
 #include <sys/types.h>
@@ -84,7 +85,7 @@ void check_death(Func && fun) {
     SignalManager context{}; // block SIGUSR1 and SIGCHLD
     pid_t pid = fork();
     if(pid == -1) {
-        std::cerr << "Fork failed!\n";
+        perror("fork");
         exit(EXIT_FAILURE);
     }
     if(pid == 0) {              // child
@@ -92,12 +93,17 @@ void check_death(Func && fun) {
         // silence doctest output
         // TODO(FilipKon13) do something better? send output to parent?
         std::cout.flush();
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
+        std::cerr.flush();
+        fflush(stdout);
+        fflush(stderr);
+        int null_fd = open("/dev/null", O_WRONLY);
+        dup2(null_fd, STDERR_FILENO);
+        dup2(null_fd, STDOUT_FILENO);
+        close(null_fd);
         fun();                    // fun should exit
         kill(getppid(), SIGUSR1); // inform parent about failure
         pause();                  // wait for termination
-        exit(0);                  // unreachable
+        exit(EXIT_FAILURE);       // unreachable
     }
     // parent
     context.setHandlers();

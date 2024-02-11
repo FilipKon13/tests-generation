@@ -71,3 +71,28 @@ TEST_CASE("test-generator-wrapper-deduction") {
     gen_type const g{26};
     static_assert(std::is_same_v<decltype(GeneratorWrapper{g}), GeneratorWrapper<const gen_type>>);
 }
+
+TEST_CASE("test-static-functions") {
+    static_assert(gen_type::min() == GeneratorWrapper<gen_type>::min());
+    static_assert(gen_type::max() == GeneratorWrapper<gen_type>::max());
+}
+
+TEST_CASE("test-passing-generator") {
+    struct test_gen : RngUtilities<test_gen> {
+        test_gen() = default;
+        test_gen(test_gen const &) = delete;
+        test_gen & operator=(test_gen const &) = delete;
+        test_gen(test_gen &&) = delete;
+        test_gen & operator=(test_gen &&) = delete;
+        int operator()() {
+            return 0;
+        }
+        test_gen & generator() {
+            return *this;
+        }
+    } utils;
+    utils.randInt(0, 0);
+    utils.randLong(0, 0);
+    std::array a = {0, 1, 2};
+    utils.shuffle(std::begin(a), std::end(a));
+}
