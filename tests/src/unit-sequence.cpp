@@ -1,4 +1,5 @@
 #include <doctest.h>
+
 #include <sstream>
 
 #include <testgen/sequence.hpp>

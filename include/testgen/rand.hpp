@@ -221,12 +221,12 @@ public:
         shuffle_sequence(b, e, gen());
     }
 
-    int randInt(int from, int to) {
-        return uni_dist<int>::gen(from, to, gen());
+    int32_t randInt(int32_t from, int32_t to) {
+        return uni_dist<int32_t>::gen(from, to, gen());
     }
 
-    long long randLong(long long from, long long to) {
-        return uni_dist<long long>::gen(from, to, gen());
+    int64_t randLong(int64_t from, int64_t to) {
+        return uni_dist<int64_t>::gen(from, to, gen());
     }
 };
 

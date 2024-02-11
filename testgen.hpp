@@ -130,6 +130,14 @@ public:
     GeneratorWrapper & operator=(GeneratorWrapper const &) noexcept = default;
     GeneratorWrapper & operator=(GeneratorWrapper &&) noexcept = default;
 
+    static constexpr auto max() {
+        return T::max();
+    }
+
+    static constexpr auto min() {
+        return T::min();
+    }
+
     operator T &() { //NOLINT allow nonexplicit use as reference to generator inside
         return *gen;
     }
@@ -184,8 +192,7 @@ public:
     static T gen(T begin, T end, Gen && gen) {
         if constexpr(std::is_integral_v<T>) { // make this better
             auto const range = end - begin + 1;
-            auto res = gen() % range;
-            return res + begin;
+            return (gen() % range) + begin;
         } else {
             using gen_t = std::remove_reference_t<Gen>;
             auto const urange = gen_t::max() - gen_t::min();
@@ -222,10 +229,22 @@ struct uniform_real_distribution {
 /* CRTP, assumes Derived has 'generator()' method/field */
 template<typename Derived>
 class RngUtilities {
+    decltype(auto) gen() {
+        return static_cast<Derived *>(this)->generator();
+    }
+
 public:
     template<typename Iter>
     void shuffle(Iter b, Iter e) {
-        shuffle_sequence(b, e, static_cast<Derived *>(this)->generator());
+        shuffle_sequence(b, e, gen());
+    }
+
+    int32_t randInt(int32_t from, int32_t to) {
+        return uni_dist<int32_t>::gen(from, to, gen());
+    }
+
+    int64_t randLong(int64_t from, int64_t to) {
+        return uni_dist<int64_t>::gen(from, to, gen());
     }
 };
 

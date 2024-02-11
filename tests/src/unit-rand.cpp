@@ -1,4 +1,5 @@
 #include <doctest.h>
+
 #include <type_traits>
 
 #include <testgen/rand.hpp>
@@ -84,7 +85,8 @@ TEST_CASE("test-passing-generator") {
         test_gen & operator=(test_gen const &) = delete;
         test_gen(test_gen &&) = delete;
         test_gen & operator=(test_gen &&) = delete;
-        int operator()() {
+        ~test_gen() = default;
+        auto operator()() {
             return 0;
         }
         test_gen & generator() {
