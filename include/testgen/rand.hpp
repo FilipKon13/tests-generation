@@ -231,7 +231,9 @@ public:
 };
 
 template<typename... T>
-struct combine : T... { using T::operator()...; };
+struct combine : T... {
+    using T::operator()...;
+};
 
 template<typename... T>
 combine(T...) -> combine<T...>;

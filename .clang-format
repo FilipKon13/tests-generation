@@ -32,7 +32,6 @@ ColumnLimit: 0
 CompactNamespaces: false
 ConstructorInitializerIndentWidth: 2
 Cpp11BracedListStyle: true
-PointerAlignment: Left
 FixNamespaceComments: true
 IncludeBlocks: Preserve
 IncludeCategories:

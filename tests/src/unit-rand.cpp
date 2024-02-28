@@ -78,19 +78,62 @@ TEST_CASE("test-static-functions") {
     static_assert(gen_type::max() == GeneratorWrapper<gen_type>::max());
 }
 
-TEST_CASE("test-passing-generator") {
-    struct test_gen : RngUtilities<test_gen> {
-        test_gen() = default;
-        test_gen(test_gen const &) = delete;
-        test_gen & operator=(test_gen const &) = delete;
-        test_gen(test_gen &&) = delete;
-        test_gen & operator=(test_gen &&) = delete;
-        ~test_gen() = default;
-        auto operator()() {
-            return 0;
-        }
+TEST_CASE("test-passing-generator-by-ref") {
+    struct base : RngUtilities<base> {
+        struct test_gen {
+            test_gen() = default;
+            test_gen(test_gen const &) = delete;
+            test_gen & operator=(test_gen const &) = delete;
+            test_gen(test_gen &&) = delete;
+            test_gen & operator=(test_gen &&) = delete;
+            ~test_gen() = default;
+            auto operator()() {
+                return 0;
+            }
+        };
+        test_gen my_gen{};
         test_gen & generator() {
-            return *this;
+            return my_gen;
+        }
+    } utils;
+    utils.randInt(0, 0);
+    utils.randLong(0, 0);
+    std::array a = {0, 1, 2};
+    utils.shuffle(std::begin(a), std::end(a));
+}
+
+TEST_CASE("test-passing-generator-by-move") {
+    struct base : RngUtilities<base> {
+        struct test_gen {
+            test_gen() = default;
+            test_gen(test_gen const &) = delete;
+            test_gen & operator=(test_gen const &) = delete;
+            test_gen(test_gen &&) = default;
+            test_gen & operator=(test_gen &&) = default;
+            ~test_gen() = default;
+            auto operator()() {
+                return 0;
+            }
+        };
+        static test_gen generator() {
+            return test_gen{};
+        }
+    } utils;
+    utils.randInt(0, 0);
+    utils.randLong(0, 0);
+    std::array a = {0, 1, 2};
+    utils.shuffle(std::begin(a), std::end(a));
+}
+
+TEST_CASE("test-passing-generator-default") {
+    struct base : RngUtilities<base> {
+        struct test_gen {
+            auto operator()() {
+                return 0;
+            }
+        };
+        static test_gen generator() {
+            return test_gen{};
         }
     } utils;
     utils.randInt(0, 0);
