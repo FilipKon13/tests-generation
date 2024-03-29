@@ -2,9 +2,9 @@
 
 - Testing framework ✅
 - Assertions for test cases
-    - global ✅
-    - suites ✅
-    - test ✅
+  - global ✅
+  - suites ✅
+  - test ✅
 - Check stability of engine ❌
 - Generate reference tests ❌
 - Provide examples and examplars ❌
@@ -13,17 +13,17 @@
 - clang-format ✅
 - Prevent use of some standard functions ❌
 - Additional utilities:
-    - undirected graphs:
-        - merge ✅
-        - contract ✅
-        - identify ✅
-        - make_simple ✅
-        - printing ✅
-        - number of edges ❌
-        - checks ❌
-            - connectivity
-            - simplicity
-            - acyclic
+  - undirected graphs:
+    - merge ✅
+    - contract ✅
+    - identify ✅
+    - make_simple ✅
+    - printing ✅
+    - number of edges ❌
+    - checks ❌
+      - connectivity
+      - simplicity
+      - acyclic
 - Naming convention with clang-tidy ✅
 - Write README ❌
 - Utilities for assumption functions (&& and ||) ✅
@@ -42,4 +42,10 @@
 - rng utilities for Testing class with use of current generator ✅
 - assume constexpr ❌
 - check UINT64_WIDTH with other systems ✅
-- safe version of testing or manager (probably manager) ❌
+- safe version of testing or manager (probably manager) ✅
+- Generate test until solution gives wrong output ❌
+- Flush function ❌
+- random vector / string easy to use utilities ❌
+- get rid of useless things ❌
+- generator dependent on suite number ❌
+- safe generated test ❌

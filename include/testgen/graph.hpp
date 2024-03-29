@@ -2,7 +2,6 @@
 #define TESTGEN_GRAPH_HPP_
 
 #include "rand.hpp"
-#include "util.hpp"
 
 #include <algorithm>
 #include <numeric>
@@ -10,15 +9,6 @@
 #include <vector>
 
 namespace test {
-
-namespace detail {
-std::vector<uint> get_permutation(int n, gen_type & gen) {
-    std::vector<uint> V(n);
-    std::iota(std::begin(V), std::end(V), 0U);
-    shuffle_sequence(std::begin(V), std::end(V), gen);
-    return V;
-}
-} /* namespace detail */
 
 class Graph {
     using container_t = std::vector<std::vector<uint>>;
@@ -48,7 +38,7 @@ public:
 
     void permute(gen_type & gen) {
         auto const n = g.size();
-        auto const per = detail::get_permutation(n, gen);
+        auto const per = get_permutation(n, gen);
         Graph new_G(g.size());
         for(uint w = 0; w < n; ++w) {
             for(auto v : (*this)[w]) {
@@ -198,7 +188,17 @@ public:
     }
 };
 
-class Path : public Generating<Graph> {
+template<typename Derived>
+class StaticGraphBase : public Generating<Graph> {
+public:
+    [[nodiscard]] Graph generate(gen_type & gen) const override {
+        Graph G = static_cast<const Derived *>(this)->generate();
+        G.permute(gen);
+        return G;
+    }
+};
+
+class Path : public StaticGraphBase<Path> {
     uint n;
 
 public:
@@ -206,6 +206,7 @@ public:
       n{n} {
         assume(n >= 1U);
     }
+    using StaticGraphBase<Path>::generate;
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto w = 0U; w < n - 1; ++w) {
@@ -213,14 +214,9 @@ public:
         }
         return G;
     }
-    [[nodiscard]] Graph generate(gen_type & gen) const override {
-        Graph G = generate();
-        G.permute(gen);
-        return G;
-    }
 };
 
-class Clique : public Generating<Graph> {
+class Clique : public StaticGraphBase<Clique> {
     uint n;
 
 public:
@@ -228,6 +224,7 @@ public:
       n{n} {
         assume(n >= 1U);
     }
+    using StaticGraphBase<Clique>::generate;
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(uint i = 0; i < n; i++) {
@@ -237,14 +234,9 @@ public:
         }
         return G;
     }
-    [[nodiscard]] Graph generate(gen_type & gen) const override {
-        Graph G = generate();
-        G.permute(gen);
-        return G;
-    }
 };
 
-class Cycle : Generating<Graph> {
+class Cycle : public StaticGraphBase<Cycle> {
     uint n;
 
 public:
@@ -252,6 +244,7 @@ public:
       n{n} {
         assume(n >= 3U);
     }
+    using StaticGraphBase<Cycle>::generate;
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto i = 0U; i < n - 1; i++) {
@@ -260,9 +253,22 @@ public:
         G.addEdge(n - 1, 0);
         return G;
     }
-    [[nodiscard]] Graph generate(gen_type & gen) const override {
-        Graph G = generate();
-        G.permute(gen);
+};
+
+class Star : public StaticGraphBase<Star> {
+    uint n;
+
+public:
+    explicit constexpr Star(uint n) :
+      n{n} {
+        assume(n >= 1U);
+    }
+    using StaticGraphBase<Star>::generate;
+    [[nodiscard]] Graph generate() const {
+        Graph G(n);
+        for(auto i = 1U; i < n; i++) {
+            G.addEdge(0, i + 1);
+        }
         return G;
     }
 };

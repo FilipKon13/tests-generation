@@ -21,21 +21,21 @@ int main() {
     test.assumptionGlobal([](Testcase t) {
         return t.G.size() == t.n && t.G.getEdges().size() == t.n - 1;
     });
-    test.nextTest(); // suite OCEN
+    test.getTest(); // suite OCEN
 
     { // gra1ocen.in
         auto out = "3\n1 2\n1 3\n";
         test << out; // usage as normal stream
     }
 
-    test.nextTest();
+    test.getTest();
     { // gra2ocen.in
         // int n = 10;
         // test << n << '\n'
         //      << Tree(n) << '\n'; // using generator dedicated to particular testcase to generate random Tree
     }
 
-    test.nextTest();
+    test.getTest();
     { // gra3ocen.in
         Testcase t;
         t.n = 100;
@@ -57,8 +57,16 @@ int main() {
         test << Testcase{n, merge(merge(p1, p2, {{0, 0}}), p3, {{0, 0}})};
     }
 
-    test.nextTest();
     { // gra1b.in
+        auto tc = test.getTest();
+        auto & [n, G] = tc;
+        n = test.randInt(1, 1000);
+        G = test(Tree(n));
+        test << tc;
+    }
+
+    test.getTest();
+    { // gra1c.in
         int n = 1000;
         Graph p1 = Path(n / 2).generate();
         Graph p2 = test(Tree(n / 2));
@@ -79,7 +87,7 @@ int main() {
     }
     { // gra2b.in
 
-        auto tc = test.nextTest(); // get testcase from nextTest function
+        auto tc = test.getTest(); // get testcase from getTest function
         auto & [n, G] = tc;
         n = 1000;
         G = test(Tree(n));

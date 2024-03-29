@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <numeric>
 #include <type_traits>
 
 constexpr uint64_t TESTGEN_SEED = 0;
@@ -38,7 +39,7 @@ private:
     }
 
     void jump() {
-        static constexpr std::array JUMP = {0x180ec6d33cfd0abaUL, 0xd5a61266f0c9392cUL, 0xa9582618e03fc9aaUL, 0x39abdc4529b1661cUL};
+        static constexpr std::array JUMP = {0x180ec6d33cfd0abaULL, 0xd5a61266f0c9392cULL, 0xa9582618e03fc9aaULL, 0x39abdc4529b1661cULL};
         static constexpr unsigned RESULT_TYPE_WIDTH = 64;
         std::array<result_type, 4> t{};
         for(auto jump : JUMP) {
@@ -59,11 +60,11 @@ public:
     explicit Xoshiro256pp(result_type seed) noexcept {
         auto next_seed = [x = seed]() mutable {
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-            auto z = (x += 0x9e3779b97f4a7c15UL);
+            auto z = (x += 0x9e3779b97f4a7c15ULL);
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-            z = (z ^ (z >> 30U)) * 0xbf58476d1ce4e5b9UL;
+            z = (z ^ (z >> 30U)) * 0xbf58476d1ce4e5b9ULL;
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-            z = (z ^ (z >> 27U)) * 0x94d049bb133111ebUL;
+            z = (z ^ (z >> 27U)) * 0x94d049bb133111ebULL;
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
             return z ^ (z >> 31U);
         };
@@ -208,6 +209,13 @@ template<typename T>
 struct uniform_real_distribution {
 };
 
+std::vector<uint> get_permutation(int n, gen_type & gen) {
+    std::vector<uint> V(n);
+    std::iota(std::begin(V), std::end(V), 0U);
+    shuffle_sequence(std::begin(V), std::end(V), gen);
+    return V;
+}
+
 /* CRTP, assumes Derived has 'generator()' method/field */
 template<typename Derived>
 class RngUtilities {
@@ -216,15 +224,24 @@ class RngUtilities {
     }
 
 public:
+    // shuffle RA sequence
     template<typename Iter>
     void shuffle(Iter b, Iter e) {
         shuffle_sequence(b, e, gen());
     }
 
+    // shuffle RA sequence
+    template<typename Container>
+    void shuffle(Container & cont) {
+        shuffle(std::begin(cont), std::end(cont));
+    }
+
+    // get random int32 in [from:to], inclusive
     int32_t randInt(int32_t from, int32_t to) {
         return uni_dist<int32_t>::gen(from, to, gen());
     }
 
+    // get random int64 in [from:to], inclusive
     int64_t randLong(int64_t from, int64_t to) {
         return uni_dist<int64_t>::gen(from, to, gen());
     }

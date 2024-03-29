@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 
-inline void assume(bool value) {
+constexpr inline void assume(bool value) {
     if(!value) { exit(EXIT_FAILURE); }
 }
 

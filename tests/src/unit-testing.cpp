@@ -42,12 +42,15 @@ TEST_CASE("test_usage_standard_types") {
     Testing<TestManager> test{s};
 
     test.nextSuite();
-    test.print(1, 2, 'a');
-    test.nextTest();
-    test.nextTest();
-    test.print("abc");
+    test.getTest();
+    test << 1 << '\n'
+         << 2 << '\n'
+         << 'a' << '\n';
+    test.getTest();
+    test.getTest();
+    test << "abc\n";
 
-    CHECK(s.str() == "next suite\n1\n2\na\nnext test\nnext test\nabc\n");
+    CHECK(s.str() == "next suite\nnext test\n1\n2\na\nnext test\nnext test\nabc\n");
 }
 
 TEST_CASE("test_generate") {
@@ -67,13 +70,14 @@ TEST_CASE("test_generating_and_standard_types") {
     Testing<TestManager> test{s};
 
     test.nextSuite();
-    test.print(2);
-    test.print(TestGenerating{});
-    test.print(1, SPACE, TestGenerating{}, SPACE, "abc");
-    test.nextTest();
+    test.getTest();
+    test << 2 << '\n'
+         << TestGenerating{} << '\n'
+         << 1 << ' ' << TestGenerating{} << ' ' << "abc" << '\n';
+    test.getTest();
     test << 11 << TestGenerating{} << ' ' << "def";
 
-    CHECK(s.str() == "next suite\n2\n3\n1 3 abc\nnext test\n113 def");
+    CHECK(s.str() == "next suite\nnext test\n2\n3\n1 3 abc\nnext test\n113 def");
 }
 
 class Testcase {
@@ -117,7 +121,7 @@ DEATH_TEST("check-assumption-change-suite") {
         CHECK_NOTHROW(test << T);
     }
     SUBCASE("next-test") {
-        test.nextTest();
+        test.getTest();
         CHECK_DEATH(test << T);
     }
 }
@@ -132,7 +136,7 @@ TEST_CASE("check-assumption-change-test") {
         CHECK_NOTHROW(test << T);
     }
     SUBCASE("next-test") {
-        test.nextTest();
+        test.getTest();
         CHECK_NOTHROW(test << T);
     }
 }
@@ -140,7 +144,7 @@ TEST_CASE("check-assumption-change-test") {
 TEST_CASE("test-return-default-testcase-instance") {
     std::stringstream s;
     Testing<TestManager> test{s};
-    [[maybe_unused]] auto gen = test.nextSuite();
+    [[maybe_unused]] auto gen = test.getTest();
     static_assert(std::is_same_v<decltype(gen), DummyTestcase>);
 }
 
@@ -148,7 +152,7 @@ TEST_CASE("test-return-default-testcase-instance") {
     class TestTestcase {};
     std::stringstream s;
     Testing<TestManager, TestTestcase> test{s};
-    [[maybe_unused]] auto gen = test.nextSuite();
+    [[maybe_unused]] auto gen = test.getTest();
     static_assert(std::is_same_v<decltype(gen), TestTestcase>);
 }
 

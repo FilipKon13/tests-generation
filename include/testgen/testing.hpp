@@ -39,28 +39,31 @@ public:
         return GeneratorWrapper<gen_type>{TestcaseManagerT::generator()};
     }
 
-    TestcaseT nextSuite() {
+    void skipTest() {
+        TestcaseManagerT::skipTest();
+        assumptions.resetTest();
+    }
+
+    void nextSuite() {
         TestcaseManagerT::nextSuite();
         assumptions.resetSuite();
         assumptions.resetTest();
-        return updateTestcase();
     }
 
-    TestcaseT nextTest() {
+    TestcaseT getTest() {
         TestcaseManagerT::nextTest();
         assumptions.resetTest();
         return updateTestcase();
     }
 
-    template<typename... T>
-    TestcaseT test(T &&... args) {
-        TestcaseManagerT::test(std::forward<T>(args)...);
+    // setTest(test_nr, suite), e.g. zad2c = (3, 2), 4ocen = (4, 0)
+    // resets suite and test assumptions!
+    template<typename T, typename U>
+    TestcaseT setTest(T test_nr, U suite) {
+        TestcaseManagerT::setTest(test_nr, suite);
+        assumptions.resetSuite();
+        assumptions.resetTest();
         return updateTestcase();
-    }
-
-    template<typename... T>
-    void print(T const &... args) {
-        output.dumpOutput((*this)(args)...);
     }
 
     template<typename T>

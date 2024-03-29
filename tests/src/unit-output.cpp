@@ -7,9 +7,7 @@ using namespace test;
 
 TEST_CASE("test_empty") {
     std::stringstream stream;
-    Output out(stream);
-
-    out.dumpOutput();
+    const Output out(stream);
 
     CHECK(stream.str() == "");
 }
@@ -18,7 +16,7 @@ TEST_CASE("test_single_int") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dumpOutput(1);
+    out << 1 << '\n';
 
     CHECK(stream.str() == "1\n");
 }
@@ -27,7 +25,7 @@ TEST_CASE("test_single_space") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dumpOutput(SPACE);
+    out << ' ';
 
     CHECK(stream.str() == " ");
 }
@@ -36,7 +34,9 @@ TEST_CASE("test_multiple_no_space") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dumpOutput(1, "22", std::string("333"));
+    out << 1 << '\n'
+        << 22 << '\n'
+        << "333\n";
 
     CHECK(stream.str() == "1\n22\n333\n");
 }
@@ -45,7 +45,7 @@ TEST_CASE("test_multiple_space") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dumpOutput(1, SPACE, "22", SPACE, std::string("333"));
+    out << 1 << ' ' << 22 << ' ' << 333 << '\n';
 
     CHECK(stream.str() == "1 22 333\n");
 }
@@ -54,7 +54,8 @@ TEST_CASE("test_space_at_end") {
     std::stringstream stream;
     Output out(stream);
 
-    out.dumpOutput(1, SPACE, "22", std::string("333"), SPACE);
+    out << 1 << ' ' << 22 << '\n'
+        << 333 << ' ';
 
     CHECK(stream.str() == "1 22\n333 ");
 }

@@ -22,7 +22,7 @@
 namespace test {
 /* ==================== util.hpp ====================*/
 
-inline void assume(bool value) {
+constexpr inline void assume(bool value) {
     if(!value) { exit(EXIT_FAILURE); }
 }
 
@@ -56,7 +56,7 @@ private:
     }
 
     void jump() {
-        static constexpr std::array JUMP = {0x180ec6d33cfd0abaUL, 0xd5a61266f0c9392cUL, 0xa9582618e03fc9aaUL, 0x39abdc4529b1661cUL};
+        static constexpr std::array JUMP = {0x180ec6d33cfd0abaULL, 0xd5a61266f0c9392cULL, 0xa9582618e03fc9aaULL, 0x39abdc4529b1661cULL};
         static constexpr unsigned RESULT_TYPE_WIDTH = 64;
         std::array<result_type, 4> t{};
         for(auto jump : JUMP) {
@@ -77,11 +77,11 @@ public:
     explicit Xoshiro256pp(result_type seed) noexcept {
         auto next_seed = [x = seed]() mutable {
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-            auto z = (x += 0x9e3779b97f4a7c15UL);
+            auto z = (x += 0x9e3779b97f4a7c15ULL);
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-            z = (z ^ (z >> 30U)) * 0xbf58476d1ce4e5b9UL;
+            z = (z ^ (z >> 30U)) * 0xbf58476d1ce4e5b9ULL;
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-            z = (z ^ (z >> 27U)) * 0x94d049bb133111ebUL;
+            z = (z ^ (z >> 27U)) * 0x94d049bb133111ebULL;
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
             return z ^ (z >> 31U);
         };
@@ -226,6 +226,13 @@ template<typename T>
 struct uniform_real_distribution {
 };
 
+std::vector<uint> get_permutation(int n, gen_type & gen) {
+    std::vector<uint> V(n);
+    std::iota(std::begin(V), std::end(V), 0U);
+    shuffle_sequence(std::begin(V), std::end(V), gen);
+    return V;
+}
+
 /* CRTP, assumes Derived has 'generator()' method/field */
 template<typename Derived>
 class RngUtilities {
@@ -234,36 +241,38 @@ class RngUtilities {
     }
 
 public:
+    // shuffle RA sequence
     template<typename Iter>
     void shuffle(Iter b, Iter e) {
         shuffle_sequence(b, e, gen());
     }
 
+    // shuffle RA sequence
+    template<typename Container>
+    void shuffle(Container & cont) {
+        shuffle(std::begin(cont), std::end(cont));
+    }
+
+    // get random int32 in [from:to], inclusive
     int32_t randInt(int32_t from, int32_t to) {
         return uni_dist<int32_t>::gen(from, to, gen());
     }
 
+    // get random int64 in [from:to], inclusive
     int64_t randLong(int64_t from, int64_t to) {
         return uni_dist<int64_t>::gen(from, to, gen());
     }
 };
 
 template<typename... T>
-struct combine : T... { using T::operator()...; };
+struct combine : T... {
+    using T::operator()...;
+};
 
 template<typename... T>
 combine(T...) -> combine<T...>;
 
 /* ==================== graph.hpp ====================*/
-
-namespace detail {
-std::vector<uint> get_permutation(int n, gen_type & gen) {
-    std::vector<uint> V(n);
-    std::iota(std::begin(V), std::end(V), 0U);
-    shuffle_sequence(std::begin(V), std::end(V), gen);
-    return V;
-}
-} /* namespace detail */
 
 class Graph {
     using container_t = std::vector<std::vector<uint>>;
@@ -293,7 +302,7 @@ public:
 
     void permute(gen_type & gen) {
         auto const n = g.size();
-        auto const per = detail::get_permutation(n, gen);
+        auto const per = get_permutation(n, gen);
         Graph new_G(g.size());
         for(uint w = 0; w < n; ++w) {
             for(auto v : (*this)[w]) {
@@ -443,7 +452,17 @@ public:
     }
 };
 
-class Path : public Generating<Graph> {
+template<typename Derived>
+class StaticGraphBase : public Generating<Graph> {
+public:
+    [[nodiscard]] Graph generate(gen_type & gen) const override {
+        Graph G = static_cast<const Derived *>(this)->generate();
+        G.permute(gen);
+        return G;
+    }
+};
+
+class Path : public StaticGraphBase<Path> {
     uint n;
 
 public:
@@ -451,6 +470,7 @@ public:
       n{n} {
         assume(n >= 1U);
     }
+    using StaticGraphBase<Path>::generate;
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto w = 0U; w < n - 1; ++w) {
@@ -458,14 +478,9 @@ public:
         }
         return G;
     }
-    [[nodiscard]] Graph generate(gen_type & gen) const override {
-        Graph G = generate();
-        G.permute(gen);
-        return G;
-    }
 };
 
-class Clique : public Generating<Graph> {
+class Clique : public StaticGraphBase<Clique> {
     uint n;
 
 public:
@@ -473,6 +488,7 @@ public:
       n{n} {
         assume(n >= 1U);
     }
+    using StaticGraphBase<Clique>::generate;
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(uint i = 0; i < n; i++) {
@@ -482,14 +498,9 @@ public:
         }
         return G;
     }
-    [[nodiscard]] Graph generate(gen_type & gen) const override {
-        Graph G = generate();
-        G.permute(gen);
-        return G;
-    }
 };
 
-class Cycle : Generating<Graph> {
+class Cycle : public StaticGraphBase<Cycle> {
     uint n;
 
 public:
@@ -497,6 +508,7 @@ public:
       n{n} {
         assume(n >= 3U);
     }
+    using StaticGraphBase<Cycle>::generate;
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto i = 0U; i < n - 1; i++) {
@@ -505,21 +517,27 @@ public:
         G.addEdge(n - 1, 0);
         return G;
     }
-    [[nodiscard]] Graph generate(gen_type & gen) const override {
-        Graph G = generate();
-        G.permute(gen);
+};
+
+class Star : public StaticGraphBase<Star> {
+    uint n;
+
+public:
+    explicit constexpr Star(uint n) :
+      n{n} {
+        assume(n >= 1U);
+    }
+    using StaticGraphBase<Star>::generate;
+    [[nodiscard]] Graph generate() const {
+        Graph G(n);
+        for(auto i = 1U; i < n; i++) {
+            G.addEdge(0, i + 1);
+        }
         return G;
     }
 };
 
 /* ==================== output.hpp ====================*/
-
-class Space {
-    friend std::ostream & operator<<(std::ostream & s, Space const & /* unused */) {
-        return s << ' ';
-    }
-};
-[[maybe_unused]] constexpr static Space SPACE{};
 
 class Output : public std::ostream {
 public:
@@ -537,30 +555,6 @@ public:
 
     void set(std::ostream & stream) {
         rdbuf(stream.rdbuf());
-    }
-
-private:
-    enum DumpState : int8_t { WAS_SPACE,
-                              NON_SPACE };
-
-public:
-    template<typename... Args>
-    void dumpOutput(Args &&... outs) {
-        if constexpr(sizeof...(outs) != 0) {
-            auto state = WAS_SPACE;
-            ([&] {
-                constexpr auto IS_SPACE = std::is_same_v<std::remove_cv_t<std::remove_reference_t<Args>>, Space>;
-                if(state == NON_SPACE && !IS_SPACE) {
-                    *this << '\n';
-                }
-                *this << std::forward<Args>(outs);
-                state = IS_SPACE ? WAS_SPACE : NON_SPACE;
-            }(),
-             ...);
-            if(state == NON_SPACE) {
-                *this << '\n';
-            }
-        }
     }
 };
 
@@ -588,12 +582,10 @@ void printEdgesAsTree(std::ostream & s, Graph const & g, int shift = 0) {
 
 /* ==================== manager.hpp ====================*/
 
-enum TestType : uint8_t { OCEN = UINT8_MAX };
-
 namespace detail {
 struct index {
     unsigned test;
-    std::variant<TestType, unsigned> suite;
+    unsigned suite;
 
     [[nodiscard]] constexpr bool operator==(index const & x) const {
         return test == x.test && suite == x.suite;
@@ -602,8 +594,7 @@ struct index {
     struct hash {
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
             constexpr auto SHIFT = 10U;
-            return static_cast<size_t>(
-                (indx.test << SHIFT) ^ std::visit([](auto x) { return x + 1U; }, indx.suite));
+            return (indx.test << SHIFT) ^ indx.suite;
         }
     };
 };
@@ -635,6 +626,10 @@ class OIOIOIManager {
         curr_test = &it.first->second;
     }
 
+    void clearStream() {
+        curr_test = nullptr;
+    }
+
     struct test_info : private std::pair<StreamType, gen_type> {
         using std::pair<StreamType, gen_type>::pair;
         [[nodiscard]] constexpr StreamType & stream() noexcept {
@@ -649,12 +644,11 @@ class OIOIOIManager {
     index curr_index;
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
-    gen_type source_generator{TESTGEN_SEED};
+    gen_type source_generator;
 
 public:
-    // CUSTOM: change default first suite to 0U if used for example tests
-    explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(/* CUSTOM */ 1U)}, abbr(std::move(abbr)) {}
+    explicit OIOIOIManager(std::string abbr, bool ocen = true, uint64_t seed = TESTGEN_SEED) :
+      curr_index{0U, ocen ? 0U : 1U}, abbr{std::move(abbr)}, source_generator{seed} {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -663,7 +657,7 @@ public:
     OIOIOIManager & operator=(OIOIOIManager const &) = delete;
     OIOIOIManager & operator=(OIOIOIManager &&) noexcept = default;
 
-    void setMainSeed(gen_type::result_type seed) {
+    void setMainSeed(uint64_t seed) noexcept {
         source_generator = gen_type(seed);
     }
 
@@ -675,36 +669,36 @@ public:
         return curr_test->generator();
     }
 
+    void isEmpty() const {
+        return curr_test == nullptr;
+    }
+
+    void skipTest() {
+        curr_index.test++;
+        clearStream();
+    }
+
     void nextTest() {
-        std::visit([this](auto x) { this->test(this->curr_index.test + 1, x); },
-                   curr_index.suite);
+        this->setTest(curr_index.test + 1, curr_index.suite);
     }
 
     void nextSuite() {
-        std::visit(combine{
-                       [this]([[maybe_unused]] TestType) {
-                           this->test(1, 1);
-                       },
-                       [this](unsigned x) {
-                           this->test(1, x + 1);
-                       }},
-                   curr_index.suite);
+        curr_index = {0, curr_index.suite + 1};
+        clearStream();
     }
 
-    void test(unsigned test, unsigned suite) {
+    void setTest(unsigned test, unsigned suite) {
         curr_index = {test, suite};
         if(changeIfTaken()) { return; }
         changeToNewStream(getFilename());
     }
 
-    void test(unsigned test, TestType ocen) {
-        curr_index = {test, ocen};
-        if(changeIfTaken()) { return; }
-        changeToNewStream(getFilename());
+    void setTestSeed(uint64_t seed) {
+        curr_test->generator() = gen_type(seed);
     }
 
     [[nodiscard]] std::string getFilename() const {
-        if(unsigned const * suite = std::get_if<unsigned>(&curr_index.suite)) {
+        if(curr_index.suite != 0U) {
             std::string suffix{};
             auto nr = curr_index.test - 1;
             constexpr unsigned SIZE = 'z' - 'a' + 1;
@@ -713,7 +707,7 @@ public:
                 nr /= SIZE;
             } while(nr != 0);
             std::reverse(std::begin(suffix), std::end(suffix));
-            return abbr + std::to_string(*suite) + suffix + ".in";
+            return abbr + std::to_string(curr_index.suite) + suffix + ".in";
         }
         return abbr + std::to_string(curr_index.test) + "ocen.in";
     }
@@ -808,28 +802,31 @@ public:
         return GeneratorWrapper<gen_type>{TestcaseManagerT::generator()};
     }
 
-    TestcaseT nextSuite() {
+    void skipTest() {
+        TestcaseManagerT::skipTest();
+        assumptions.resetTest();
+    }
+
+    void nextSuite() {
         TestcaseManagerT::nextSuite();
         assumptions.resetSuite();
         assumptions.resetTest();
-        return updateTestcase();
     }
 
-    TestcaseT nextTest() {
+    TestcaseT getTest() {
         TestcaseManagerT::nextTest();
         assumptions.resetTest();
         return updateTestcase();
     }
 
-    template<typename... T>
-    TestcaseT test(T &&... args) {
-        TestcaseManagerT::test(std::forward<T>(args)...);
+    // setTest(test_nr, suite), e.g. zad2c = (3, 2), 4ocen = (4, 0)
+    // resets suite and test assumptions!
+    template<typename T, typename U>
+    TestcaseT setTest(T test_nr, U suite) {
+        TestcaseManagerT::setTest(test_nr, suite);
+        assumptions.resetSuite();
+        assumptions.resetTest();
         return updateTestcase();
-    }
-
-    template<typename... T>
-    void print(T const &... args) {
-        output.dumpOutput((*this)(args)...);
     }
 
     template<typename T>
@@ -924,45 +921,6 @@ public:
             s << ' ' << *it++;
         }
         return s;
-    }
-};
-
-template<typename Dist, typename T>
-class DistSequence : Generating<Sequence<T>> {
-    std::size_t n;
-    Dist dist;
-
-public:
-    constexpr DistSequence(std::size_t n, T begin, T end) :
-      n(n), dist(begin, end) {}
-    Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(n, [&] { return dist(gen); });
-    }
-};
-
-template<typename T>
-using UniSequence = DistSequence<uni_dist<T>, T>;
-
-template<typename T, std::size_t S>
-class FiniteSequence : Generating<Sequence<T>> {
-    std::size_t n;
-    std::array<T, S> elems;
-
-    template<std::size_t... Indx>
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
-    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...> /* unused */) {
-        return std::array<T, S>({arr[Indx]...});
-    }
-
-public:
-    constexpr FiniteSequence(std::size_t n, std::array<T, S> const & arr) :
-      n(n), elems(arr) {}
-
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
-    constexpr FiniteSequence(std::size_t n, T const (&arr)[S]) :
-      n(n), elems(construct(arr, std::make_index_sequence<S>{})) {}
-    Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems.at(dist(gen)); });
     }
 };
 

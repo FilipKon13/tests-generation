@@ -12,12 +12,10 @@
 
 namespace test {
 
-enum TestType : uint8_t { OCEN = UINT8_MAX };
-
 namespace detail {
 struct index {
     unsigned test;
-    std::variant<TestType, unsigned> suite;
+    unsigned suite;
 
     [[nodiscard]] constexpr bool operator==(index const & x) const {
         return test == x.test && suite == x.suite;
@@ -26,8 +24,7 @@ struct index {
     struct hash {
         [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
             constexpr auto SHIFT = 10U;
-            return static_cast<size_t>(
-                (indx.test << SHIFT) ^ std::visit([](auto x) { return x + 1U; }, indx.suite));
+            return (indx.test << SHIFT) ^ indx.suite;
         }
     };
 };
@@ -59,6 +56,10 @@ class OIOIOIManager {
         curr_test = &it.first->second;
     }
 
+    void clearStream() {
+        curr_test = nullptr;
+    }
+
     struct test_info : private std::pair<StreamType, gen_type> {
         using std::pair<StreamType, gen_type>::pair;
         [[nodiscard]] constexpr StreamType & stream() noexcept {
@@ -73,12 +74,11 @@ class OIOIOIManager {
     index curr_index;
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
-    gen_type source_generator{TESTGEN_SEED};
+    gen_type source_generator;
 
 public:
-    // CUSTOM: change default first suite to 0U if used for example tests
-    explicit OIOIOIManager(std::string abbr, bool ocen = false) :
-      curr_index{0, ocen ? std::variant<TestType, unsigned>(OCEN) : std::variant<TestType, unsigned>(/* CUSTOM */ 1U)}, abbr(std::move(abbr)) {}
+    explicit OIOIOIManager(std::string abbr, bool ocen = true, uint64_t seed = TESTGEN_SEED) :
+      curr_index{0U, ocen ? 0U : 1U}, abbr{std::move(abbr)}, source_generator{seed} {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -87,7 +87,7 @@ public:
     OIOIOIManager & operator=(OIOIOIManager const &) = delete;
     OIOIOIManager & operator=(OIOIOIManager &&) noexcept = default;
 
-    void setMainSeed(gen_type::result_type seed) {
+    void setMainSeed(uint64_t seed) noexcept {
         source_generator = gen_type(seed);
     }
 
@@ -99,36 +99,36 @@ public:
         return curr_test->generator();
     }
 
+    void isEmpty() const {
+        return curr_test == nullptr;
+    }
+
+    void skipTest() {
+        curr_index.test++;
+        clearStream();
+    }
+
     void nextTest() {
-        std::visit([this](auto x) { this->test(this->curr_index.test + 1, x); },
-                   curr_index.suite);
+        this->setTest(curr_index.test + 1, curr_index.suite);
     }
 
     void nextSuite() {
-        std::visit(combine{
-                       [this]([[maybe_unused]] TestType) {
-                           this->test(1, 1);
-                       },
-                       [this](unsigned x) {
-                           this->test(1, x + 1);
-                       }},
-                   curr_index.suite);
+        curr_index = {0, curr_index.suite + 1};
+        clearStream();
     }
 
-    void test(unsigned test, unsigned suite) {
+    void setTest(unsigned test, unsigned suite) {
         curr_index = {test, suite};
         if(changeIfTaken()) { return; }
         changeToNewStream(getFilename());
     }
 
-    void test(unsigned test, TestType ocen) {
-        curr_index = {test, ocen};
-        if(changeIfTaken()) { return; }
-        changeToNewStream(getFilename());
+    void setTestSeed(uint64_t seed) {
+        curr_test->generator() = gen_type(seed);
     }
 
     [[nodiscard]] std::string getFilename() const {
-        if(unsigned const * suite = std::get_if<unsigned>(&curr_index.suite)) {
+        if(curr_index.suite != 0U) {
             std::string suffix{};
             auto nr = curr_index.test - 1;
             constexpr unsigned SIZE = 'z' - 'a' + 1;
@@ -137,7 +137,7 @@ public:
                 nr /= SIZE;
             } while(nr != 0);
             std::reverse(std::begin(suffix), std::end(suffix));
-            return abbr + std::to_string(*suite) + suffix + ".in";
+            return abbr + std::to_string(curr_index.suite) + suffix + ".in";
         }
         return abbr + std::to_string(curr_index.test) + "ocen.in";
     }

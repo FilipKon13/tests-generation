@@ -59,45 +59,6 @@ public:
     }
 };
 
-template<typename Dist, typename T>
-class DistSequence : Generating<Sequence<T>> {
-    std::size_t n;
-    Dist dist;
-
-public:
-    constexpr DistSequence(std::size_t n, T begin, T end) :
-      n(n), dist(begin, end) {}
-    Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(n, [&] { return dist(gen); });
-    }
-};
-
-template<typename T>
-using UniSequence = DistSequence<uni_dist<T>, T>;
-
-template<typename T, std::size_t S>
-class FiniteSequence : Generating<Sequence<T>> {
-    std::size_t n;
-    std::array<T, S> elems;
-
-    template<std::size_t... Indx>
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
-    static std::array<T, S> construct(T const (&arr)[S], std::index_sequence<Indx...> /* unused */) {
-        return std::array<T, S>({arr[Indx]...});
-    }
-
-public:
-    constexpr FiniteSequence(std::size_t n, std::array<T, S> const & arr) :
-      n(n), elems(arr) {}
-
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays, modernize-avoid-c-arrays)
-    constexpr FiniteSequence(std::size_t n, T const (&arr)[S]) :
-      n(n), elems(construct(arr, std::make_index_sequence<S>{})) {}
-    Sequence<T> generate(gen_type & gen) const override {
-        return Sequence<T>(n, [&, dist = uni_dist<std::size_t>(0, S - 1)] { return elems.at(dist(gen)); });
-    }
-};
-
 } /* namespace test */
 
 #endif /* TESTGEN_SEQUENCE_HPP_ */

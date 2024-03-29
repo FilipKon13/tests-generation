@@ -7,13 +7,6 @@
 
 namespace test {
 
-class Space {
-    friend std::ostream & operator<<(std::ostream & s, Space const & /* unused */) {
-        return s << ' ';
-    }
-};
-[[maybe_unused]] constexpr static Space SPACE{};
-
 class Output : public std::ostream {
 public:
     explicit Output(std::ostream && stream) :
@@ -30,30 +23,6 @@ public:
 
     void set(std::ostream & stream) {
         rdbuf(stream.rdbuf());
-    }
-
-private:
-    enum DumpState : int8_t { WAS_SPACE,
-                              NON_SPACE };
-
-public:
-    template<typename... Args>
-    void dumpOutput(Args &&... outs) {
-        if constexpr(sizeof...(outs) != 0) {
-            auto state = WAS_SPACE;
-            ([&] {
-                constexpr auto IS_SPACE = std::is_same_v<std::remove_cv_t<std::remove_reference_t<Args>>, Space>;
-                if(state == NON_SPACE && !IS_SPACE) {
-                    *this << '\n';
-                }
-                *this << std::forward<Args>(outs);
-                state = IS_SPACE ? WAS_SPACE : NON_SPACE;
-            }(),
-             ...);
-            if(state == NON_SPACE) {
-                *this << '\n';
-            }
-        }
     }
 };
 
