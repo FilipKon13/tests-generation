@@ -36,7 +36,7 @@
 - Global-wide existential tests ❌
 - get test filename accesser ✅
 - Print test name while generating and on error ✅
-- Skipping testcases (e.g. already generated ones) ❌
+- Skipping testcases (e.g. already generated ones) ✅
 - Changing seeding for tests instead of global constant ❌
 - Write about CUSTOM comments ❌
 - rng utilities for Testing class with use of current generator ✅
@@ -48,4 +48,12 @@
 - random vector / string easy to use utilities ❌
 - get rid of useless things ❌
 - generator dependent on suite number ❌
-- safe generated test ❌
+- save generated test ❌
+- skip suite ❌
+- change names to be descriptive ❌
+- nice way to send reference to Testing object to function ❌
+- nice chain printing ❌
+
+## Test coverage
+
+- ...
