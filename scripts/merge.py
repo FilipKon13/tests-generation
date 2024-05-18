@@ -13,7 +13,7 @@ reg_normal = re.compile(R' *#include +<.+>')
 filemap = dict()
 includes_set = set()
 
-class file:
+class File:
     def __init__(self, path, name):
         self.depen = []
         self.name = name
@@ -21,7 +21,7 @@ class file:
         with open(path, 'r') as file:
             for line in file:
                 if reg_local.match(line):
-                    self.depen.append(line.split('\"')[1])
+                    self.depen.append(line.split('"')[1])
                 elif reg_normal.match(line):
                     inside = line.split("<")[1].split(">")[0]
                     includes_set.add(f"#include <{inside}>\n")
@@ -29,12 +29,13 @@ class file:
 for root, dirs, files in os.walk(SRC_PATH):
     for name in files:
         path = os.path.join(root, name)
-        filemap[name] = file(path, name)
+        filemap[name] = File(path, name)
 
 visited = set()
 last = False
-def dfs(file : file, output):
+def dfs(file : File, output):
     global last
+    last = True
     visited.add(file.name)
     for v in file.depen:
         if v not in visited:
@@ -44,7 +45,6 @@ def dfs(file : file, output):
     output.write(" " + file.name + " ")
     output.write("=" * 20)
     output.write("*/\n\n");
-    last = True
     with open(file.path, 'r') as inp:
         for line in inp:
             if line == '\n':
