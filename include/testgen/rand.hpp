@@ -19,12 +19,12 @@ public:
     using result_type = uint64_t;
 
 private:
+    std::array<result_type, 4> s{};
+
     static inline result_type rotl(result_type x, unsigned k) {
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
         return (x << k) | (x >> (64U - k));
     }
-
-    std::array<result_type, 4> s{};
 
     void advance() {
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
@@ -167,25 +167,18 @@ public:
       begin(begin), end(end) {
         assume(begin <= end);
     }
+
     template<typename Gen>
     T operator()(Gen && gen) const {
         return uni_dist::gen(begin, end, std::forward<Gen>(gen));
     }
+
     template<typename Gen>
     static T gen(T begin, T end, Gen && gen) {
-        if constexpr(std::is_integral_v<T>) { // make this better
-            auto const range = end - begin + 1;
-            return (gen() % range) + begin;
-        } else {
-            using gen_t = std::remove_reference_t<Gen>;
-            auto const urange = gen_t::max() - gen_t::min();
-            auto const range = end - begin;
-            return (static_cast<T>(gen()) / urange) * range + begin;
-        }
+        auto const range = end - begin + 1;
+        return (gen() % range) + begin; // not really uniform, but close enough
     }
 };
-template<typename U, typename V>
-uni_dist(U, V) -> uni_dist<std::common_type_t<U, V>>;
 
 namespace detail {
 
@@ -201,13 +194,9 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
         return;
     }
     for(auto it = begin; ++it != end;) {
-        detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
+        detail::iter_swap(it, begin + uni_dist<size_t>(0, std::distance(begin, it))(gen));
     }
 }
-
-template<typename T>
-struct uniform_real_distribution {
-};
 
 std::vector<uint> get_permutation(int n, gen_type & gen) {
     std::vector<uint> V(n);
@@ -246,14 +235,6 @@ public:
         return uni_dist<int64_t>::gen(from, to, gen());
     }
 };
-
-template<typename... T>
-struct combine : T... {
-    using T::operator()...;
-};
-
-template<typename... T>
-combine(T...) -> combine<T...>;
 
 } /* namespace test */
 

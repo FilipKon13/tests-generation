@@ -22,7 +22,7 @@
 namespace test {
 /* ==================== util.hpp ====================*/
 
-constexpr inline void assume(bool value) {
+void assume(bool value) {
     if(!value) { exit(EXIT_FAILURE); }
 }
 
@@ -36,12 +36,12 @@ public:
     using result_type = uint64_t;
 
 private:
+    std::array<result_type, 4> s{};
+
     static inline result_type rotl(result_type x, unsigned k) {
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
         return (x << k) | (x >> (64U - k));
     }
-
-    std::array<result_type, 4> s{};
 
     void advance() {
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
@@ -184,25 +184,18 @@ public:
       begin(begin), end(end) {
         assume(begin <= end);
     }
+
     template<typename Gen>
     T operator()(Gen && gen) const {
         return uni_dist::gen(begin, end, std::forward<Gen>(gen));
     }
+
     template<typename Gen>
     static T gen(T begin, T end, Gen && gen) {
-        if constexpr(std::is_integral_v<T>) { // make this better
-            auto const range = end - begin + 1;
-            return (gen() % range) + begin;
-        } else {
-            using gen_t = std::remove_reference_t<Gen>;
-            auto const urange = gen_t::max() - gen_t::min();
-            auto const range = end - begin;
-            return (static_cast<T>(gen()) / urange) * range + begin;
-        }
+        auto const range = end - begin + 1;
+        return (gen() % range) + begin; // not really uniform, but close enough
     }
 };
-template<typename U, typename V>
-uni_dist(U, V) -> uni_dist<std::common_type_t<U, V>>;
 
 namespace detail {
 
@@ -218,13 +211,9 @@ void shuffle_sequence(Iter begin, Iter end, Gen && gen) {
         return;
     }
     for(auto it = begin; ++it != end;) {
-        detail::iter_swap(it, begin + uni_dist(0, std::distance(begin, it))(gen));
+        detail::iter_swap(it, begin + uni_dist<size_t>(0, std::distance(begin, it))(gen));
     }
 }
-
-template<typename T>
-struct uniform_real_distribution {
-};
 
 std::vector<uint> get_permutation(int n, gen_type & gen) {
     std::vector<uint> V(n);
@@ -263,14 +252,6 @@ public:
         return uni_dist<int64_t>::gen(from, to, gen());
     }
 };
-
-template<typename... T>
-struct combine : T... {
-    using T::operator()...;
-};
-
-template<typename... T>
-combine(T...) -> combine<T...>;
 
 /* ==================== graph.hpp ====================*/
 
@@ -432,13 +413,13 @@ class Tree : public Generating<Graph> {
 
 public:
     //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    explicit constexpr Tree(uint n, uint range) :
+    Tree(uint n, uint range) :
       n{n}, range{range} {
         assume(n >= 1U);
         assume(range >= 1U);
     }
 
-    explicit constexpr Tree(uint n) :
+    explicit Tree(uint n) :
       Tree{n, n} {}
 
     [[nodiscard]] Graph generate(gen_type & gen) const override {
@@ -466,11 +447,13 @@ class Path : public StaticGraphBase<Path> {
     uint n;
 
 public:
-    explicit constexpr Path(uint n) :
+    explicit Path(uint n) :
       n{n} {
         assume(n >= 1U);
     }
+
     using StaticGraphBase<Path>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto w = 0U; w < n - 1; ++w) {
@@ -484,11 +467,13 @@ class Clique : public StaticGraphBase<Clique> {
     uint n;
 
 public:
-    explicit constexpr Clique(uint n) :
+    explicit Clique(uint n) :
       n{n} {
         assume(n >= 1U);
     }
+
     using StaticGraphBase<Clique>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(uint i = 0; i < n; i++) {
@@ -504,11 +489,13 @@ class Cycle : public StaticGraphBase<Cycle> {
     uint n;
 
 public:
-    explicit constexpr Cycle(uint n) :
+    explicit Cycle(uint n) :
       n{n} {
         assume(n >= 3U);
     }
+
     using StaticGraphBase<Cycle>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto i = 0U; i < n - 1; i++) {
@@ -523,11 +510,13 @@ class Star : public StaticGraphBase<Star> {
     uint n;
 
 public:
-    explicit constexpr Star(uint n) :
+    explicit Star(uint n) :
       n{n} {
         assume(n >= 1U);
     }
+
     using StaticGraphBase<Star>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto i = 1U; i < n; i++) {
@@ -587,12 +576,12 @@ struct index {
     unsigned test;
     unsigned suite;
 
-    [[nodiscard]] constexpr bool operator==(index const & x) const {
+    [[nodiscard]] bool operator==(index const & x) const {
         return test == x.test && suite == x.suite;
     }
 
     struct hash {
-        [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
+        [[nodiscard]] std::size_t operator()(index const & indx) const {
             constexpr auto SHIFT = 10U;
             return (indx.test << SHIFT) ^ indx.suite;
         }
@@ -607,23 +596,29 @@ enum Verbocity {
 
 template<Verbocity Verbose = VERBOSE, typename StreamType = std::ofstream>
 class OIOIOIManager {
-    bool changeIfTaken() {
-        if(auto const it = cases.find(curr_index); it != cases.end()) {
-            curr_test = &it->second;
-            return true;
+    void changeStream() {
+        auto test_name = getFilename();
+        if constexpr(Verbose == Verbocity::VERBOSE) {
+            std::cerr << "Printing to: " << test_name << '\n';
         }
-        return false;
+        auto it = cases.find(curr_index);
+        if(it == cases.end()) {
+            it = cases.try_emplace(curr_index,
+                                   std::piecewise_construct,
+                                   std::forward_as_tuple(std::move(test_name)),
+                                   std::forward_as_tuple(getGeneratorForCurrentTest()))
+                     .first;
+        }
+        curr_test = &it->second;
     }
 
-    void changeToNewStream(std::string const & name) {
-        if constexpr(Verbose == Verbocity::VERBOSE) {
-            std::cout << "Printing to: " << name << '\n';
+    gen_type getGeneratorForCurrentTest() {
+        auto const current_suite_nr = curr_index.suite;
+        auto it = suite_generators.find(current_suite_nr);
+        if(it == suite_generators.end()) {
+            it = suite_generators.try_emplace(current_suite_nr, main_generator()).first;
         }
-        auto const it = cases.try_emplace(curr_index,
-                                          std::piecewise_construct,
-                                          std::forward_as_tuple(name),
-                                          std::forward_as_tuple(source_generator.fork()));
-        curr_test = &it.first->second;
+        return it->second.fork();
     }
 
     void clearStream() {
@@ -632,10 +627,10 @@ class OIOIOIManager {
 
     struct test_info : private std::pair<StreamType, gen_type> {
         using std::pair<StreamType, gen_type>::pair;
-        [[nodiscard]] constexpr StreamType & stream() noexcept {
+        [[nodiscard]] StreamType & stream() {
             return this->first;
         }
-        [[nodiscard]] constexpr gen_type & generator() noexcept {
+        [[nodiscard]] gen_type & generator() {
             return this->second;
         }
     };
@@ -644,11 +639,12 @@ class OIOIOIManager {
     index curr_index;
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
-    gen_type source_generator;
+    std::unordered_map<unsigned, gen_type> suite_generators{};
+    gen_type main_generator;
 
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = true, uint64_t seed = TESTGEN_SEED) :
-      curr_index{0U, ocen ? 0U : 1U}, abbr{std::move(abbr)}, source_generator{seed} {}
+      curr_index{0U, ocen ? 0U : 1U}, abbr{std::move(abbr)}, main_generator{seed} {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -658,14 +654,22 @@ public:
     OIOIOIManager & operator=(OIOIOIManager &&) noexcept = default;
 
     void setMainSeed(uint64_t seed) noexcept {
-        source_generator = gen_type(seed);
+        main_generator = gen_type(seed);
     }
 
-    [[nodiscard]] constexpr StreamType & stream() const noexcept {
+    void setSuiteSeed(uint64_t seed) noexcept {
+        suite_generators[curr_index.suite] = gen_type(seed);
+    }
+
+    void setTestSeed(uint64_t seed) noexcept {
+        generator() = gen_type(seed);
+    }
+
+    [[nodiscard]] StreamType & stream() const {
         return curr_test->stream();
     }
 
-    [[nodiscard]] constexpr gen_type & generator() const noexcept {
+    [[nodiscard]] gen_type & generator() const {
         return curr_test->generator();
     }
 
@@ -689,12 +693,7 @@ public:
 
     void setTest(unsigned test, unsigned suite) {
         curr_index = {test, suite};
-        if(changeIfTaken()) { return; }
-        changeToNewStream(getFilename());
-    }
-
-    void setTestSeed(uint64_t seed) {
-        curr_test->generator() = gen_type(seed);
+        changeStream();
     }
 
     [[nodiscard]] std::string getFilename() const {
@@ -772,15 +771,8 @@ auto operator||(Fun1T && fun1, Fun2T && fun2) {
 
 /* ==================== testing.hpp ====================*/
 
-class DummyTestcase {};
-
-template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
+template<typename TestcaseManagerT, typename TestcaseT = std::false_type, template<typename> typename AssumptionsManagerT = AssumptionManager>
 class Testing : private TestcaseManagerT, public RngUtilities<Testing<TestcaseManagerT, TestcaseT, AssumptionsManagerT>> {
-    template<typename T>
-    auto generate(Generating<T> const & schema) {
-        return schema.generate(generator());
-    }
-
     TestcaseT updateTestcase() {
         output.set(this->stream());
         return TestcaseT{};
@@ -830,12 +822,8 @@ public:
     }
 
     template<typename T>
-    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
-        if constexpr(is_generating<T>::value) {
-            return generate(t);
-        } else {
-            return t;
-        }
+    auto generateFromSchema(Generating<T> const & schema) {
+        return schema.generate(generator());
     }
 
     template<typename T>
@@ -846,7 +834,11 @@ public:
                 assume(false);
             }
         }
-        output << (*this)(out);
+        if constexpr(is_generating<T>::value) {
+            output << generateFromSchema(out);
+        } else {
+            output << out;
+        }
         return *this;
     }
 
@@ -870,7 +862,7 @@ public:
     }
 
     bool checkHard(TestcaseT const & tc) {
-        assume(checkHard(tc));
+        assume(checkSoft(tc));
         return true;
     }
 };

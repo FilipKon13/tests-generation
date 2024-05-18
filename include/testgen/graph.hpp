@@ -168,13 +168,13 @@ class Tree : public Generating<Graph> {
 
 public:
     //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    explicit constexpr Tree(uint n, uint range) :
+    Tree(uint n, uint range) :
       n{n}, range{range} {
         assume(n >= 1U);
         assume(range >= 1U);
     }
 
-    explicit constexpr Tree(uint n) :
+    explicit Tree(uint n) :
       Tree{n, n} {}
 
     [[nodiscard]] Graph generate(gen_type & gen) const override {
@@ -202,11 +202,13 @@ class Path : public StaticGraphBase<Path> {
     uint n;
 
 public:
-    explicit constexpr Path(uint n) :
+    explicit Path(uint n) :
       n{n} {
         assume(n >= 1U);
     }
+
     using StaticGraphBase<Path>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto w = 0U; w < n - 1; ++w) {
@@ -220,11 +222,13 @@ class Clique : public StaticGraphBase<Clique> {
     uint n;
 
 public:
-    explicit constexpr Clique(uint n) :
+    explicit Clique(uint n) :
       n{n} {
         assume(n >= 1U);
     }
+
     using StaticGraphBase<Clique>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(uint i = 0; i < n; i++) {
@@ -240,11 +244,13 @@ class Cycle : public StaticGraphBase<Cycle> {
     uint n;
 
 public:
-    explicit constexpr Cycle(uint n) :
+    explicit Cycle(uint n) :
       n{n} {
         assume(n >= 3U);
     }
+
     using StaticGraphBase<Cycle>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto i = 0U; i < n - 1; i++) {
@@ -259,11 +265,13 @@ class Star : public StaticGraphBase<Star> {
     uint n;
 
 public:
-    explicit constexpr Star(uint n) :
+    explicit Star(uint n) :
       n{n} {
         assume(n >= 1U);
     }
+
     using StaticGraphBase<Star>::generate;
+
     [[nodiscard]] Graph generate() const {
         Graph G(n);
         for(auto i = 1U; i < n; i++) {

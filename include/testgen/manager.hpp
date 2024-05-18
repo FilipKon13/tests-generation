@@ -4,11 +4,8 @@
 #include "rand.hpp"
 
 #include <algorithm>
-#include <cstdlib>
 #include <iostream>
-#include <string_view>
 #include <unordered_map>
-#include <variant>
 
 namespace test {
 
@@ -17,12 +14,12 @@ struct index {
     unsigned test;
     unsigned suite;
 
-    [[nodiscard]] constexpr bool operator==(index const & x) const {
+    [[nodiscard]] bool operator==(index const & x) const {
         return test == x.test && suite == x.suite;
     }
 
     struct hash {
-        [[nodiscard]] constexpr std::size_t operator()(index const & indx) const {
+        [[nodiscard]] std::size_t operator()(index const & indx) const {
             constexpr auto SHIFT = 10U;
             return (indx.test << SHIFT) ^ indx.suite;
         }
@@ -37,23 +34,29 @@ enum Verbocity {
 
 template<Verbocity Verbose = VERBOSE, typename StreamType = std::ofstream>
 class OIOIOIManager {
-    bool changeIfTaken() {
-        if(auto const it = cases.find(curr_index); it != cases.end()) {
-            curr_test = &it->second;
-            return true;
+    void changeStream() {
+        auto test_name = getFilename();
+        if constexpr(Verbose == Verbocity::VERBOSE) {
+            std::cerr << "Printing to: " << test_name << '\n';
         }
-        return false;
+        auto it = cases.find(curr_index);
+        if(it == cases.end()) {
+            it = cases.try_emplace(curr_index,
+                                   std::piecewise_construct,
+                                   std::forward_as_tuple(std::move(test_name)),
+                                   std::forward_as_tuple(getGeneratorForCurrentTest()))
+                     .first;
+        }
+        curr_test = &it->second;
     }
 
-    void changeToNewStream(std::string const & name) {
-        if constexpr(Verbose == Verbocity::VERBOSE) {
-            std::cout << "Printing to: " << name << '\n';
+    gen_type getGeneratorForCurrentTest() {
+        auto const current_suite_nr = curr_index.suite;
+        auto it = suite_generators.find(current_suite_nr);
+        if(it == suite_generators.end()) {
+            it = suite_generators.try_emplace(current_suite_nr, main_generator()).first;
         }
-        auto const it = cases.try_emplace(curr_index,
-                                          std::piecewise_construct,
-                                          std::forward_as_tuple(name),
-                                          std::forward_as_tuple(source_generator.fork()));
-        curr_test = &it.first->second;
+        return it->second.fork();
     }
 
     void clearStream() {
@@ -62,10 +65,10 @@ class OIOIOIManager {
 
     struct test_info : private std::pair<StreamType, gen_type> {
         using std::pair<StreamType, gen_type>::pair;
-        [[nodiscard]] constexpr StreamType & stream() noexcept {
+        [[nodiscard]] StreamType & stream() {
             return this->first;
         }
-        [[nodiscard]] constexpr gen_type & generator() noexcept {
+        [[nodiscard]] gen_type & generator() {
             return this->second;
         }
     };
@@ -74,11 +77,12 @@ class OIOIOIManager {
     index curr_index;
     std::string abbr;
     std::unordered_map<index, test_info, index::hash> cases{};
-    gen_type source_generator;
+    std::unordered_map<unsigned, gen_type> suite_generators{};
+    gen_type main_generator;
 
 public:
     explicit OIOIOIManager(std::string abbr, bool ocen = true, uint64_t seed = TESTGEN_SEED) :
-      curr_index{0U, ocen ? 0U : 1U}, abbr{std::move(abbr)}, source_generator{seed} {}
+      curr_index{0U, ocen ? 0U : 1U}, abbr{std::move(abbr)}, main_generator{seed} {}
 
     OIOIOIManager() = delete;
     OIOIOIManager(OIOIOIManager const &) = delete;
@@ -88,14 +92,22 @@ public:
     OIOIOIManager & operator=(OIOIOIManager &&) noexcept = default;
 
     void setMainSeed(uint64_t seed) noexcept {
-        source_generator = gen_type(seed);
+        main_generator = gen_type(seed);
     }
 
-    [[nodiscard]] constexpr StreamType & stream() const noexcept {
+    void setSuiteSeed(uint64_t seed) noexcept {
+        suite_generators[curr_index.suite] = gen_type(seed);
+    }
+
+    void setTestSeed(uint64_t seed) noexcept {
+        generator() = gen_type(seed);
+    }
+
+    [[nodiscard]] StreamType & stream() const {
         return curr_test->stream();
     }
 
-    [[nodiscard]] constexpr gen_type & generator() const noexcept {
+    [[nodiscard]] gen_type & generator() const {
         return curr_test->generator();
     }
 
@@ -119,12 +131,7 @@ public:
 
     void setTest(unsigned test, unsigned suite) {
         curr_index = {test, suite};
-        if(changeIfTaken()) { return; }
-        changeToNewStream(getFilename());
-    }
-
-    void setTestSeed(uint64_t seed) {
-        curr_test->generator() = gen_type(seed);
+        changeStream();
     }
 
     [[nodiscard]] std::string getFilename() const {

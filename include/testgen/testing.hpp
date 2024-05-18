@@ -9,15 +9,8 @@
 
 namespace test {
 
-class DummyTestcase {};
-
-template<typename TestcaseManagerT, typename TestcaseT = DummyTestcase, template<typename> typename AssumptionsManagerT = AssumptionManager>
+template<typename TestcaseManagerT, typename TestcaseT = std::false_type, template<typename> typename AssumptionsManagerT = AssumptionManager>
 class Testing : private TestcaseManagerT, public RngUtilities<Testing<TestcaseManagerT, TestcaseT, AssumptionsManagerT>> {
-    template<typename T>
-    auto generate(Generating<T> const & schema) {
-        return schema.generate(generator());
-    }
-
     TestcaseT updateTestcase() {
         output.set(this->stream());
         return TestcaseT{};
@@ -67,12 +60,8 @@ public:
     }
 
     template<typename T>
-    decltype(auto) operator()(T const & t) { /* decltype(auto) does not decay static arrays to pointers */
-        if constexpr(is_generating<T>::value) {
-            return generate(t);
-        } else {
-            return t;
-        }
+    auto generateFromSchema(Generating<T> const & schema) {
+        return schema.generate(generator());
     }
 
     template<typename T>
@@ -83,7 +72,11 @@ public:
                 assume(false);
             }
         }
-        output << (*this)(out);
+        if constexpr(is_generating<T>::value) {
+            output << generateFromSchema(out);
+        } else {
+            output << out;
+        }
         return *this;
     }
 
@@ -107,7 +100,7 @@ public:
     }
 
     bool checkHard(TestcaseT const & tc) {
-        assume(checkHard(tc));
+        assume(checkSoft(tc));
         return true;
     }
 };

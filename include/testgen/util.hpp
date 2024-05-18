@@ -2,9 +2,8 @@
 #define TESTGEN_UTIL_HPP_
 
 #include <cstdlib>
-#include <iostream>
 
-constexpr inline void assume(bool value) {
+void assume(bool value) {
     if(!value) { exit(EXIT_FAILURE); }
 }
 

@@ -57,12 +57,10 @@ TEST_CASE("test_generate") {
     std::stringstream s;
     Testing<TestManager> test{s};
 
-    auto v1 = test(7);
-    auto v2 = test(TestGenerating{});
+    auto val = test.generateFromSchema(TestGenerating{});
 
-    static_assert(std::is_same_v<int, decltype(v2)>);
-    CHECK(v1 == 7);
-    CHECK(v2 == 3);
+    static_assert(std::is_same_v<int, decltype(val)>);
+    CHECK(val == 3);
 }
 
 TEST_CASE("test_generating_and_standard_types") {
@@ -145,7 +143,7 @@ TEST_CASE("test-return-default-testcase-instance") {
     std::stringstream s;
     Testing<TestManager> test{s};
     [[maybe_unused]] auto gen = test.getTest();
-    static_assert(std::is_same_v<decltype(gen), DummyTestcase>);
+    static_assert(std::is_same_v<decltype(gen), std::false_type>);
 }
 
 TEST_CASE("test-return-default-testcase-instance") {
