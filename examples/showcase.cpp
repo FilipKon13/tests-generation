@@ -39,8 +39,8 @@ int main() {
     { // gra3ocen.in
         Testcase t;
         t.n = 100;
-        t.G = test(Tree(t.n)); // using generator dedicated to particular testcase to generate random Tree
-        test << t;             // checks assumptions
+        t.G = test.generateFromSchema(Tree(t.n)); // using generator dedicated to particular testcase to generate random Tree
+        test << t;                                // checks assumptions
     }
 
     test.nextSuite(); // changes suite to 1st
@@ -52,7 +52,7 @@ int main() {
     { // gra1a.in
         int n = 900;
         Graph p1 = Path(n / 3).generate();                 // deterministic path
-        Graph p2 = test(Path(n / 3));                      // random path
+        Graph p2 = test.generateFromSchema(Path(n / 3));   // random path
         Graph p3 = Path(n / 3).generate(test.generator()); // same as above
         test << Testcase{n, merge(merge(p1, p2, {{0, 0}}), p3, {{0, 0}})};
     }
@@ -61,7 +61,7 @@ int main() {
         auto tc = test.getTest();
         auto & [n, G] = tc;
         n = test.randInt(1, 1000);
-        G = test(Tree(n));
+        G = test.generateFromSchema(Tree(n));
         test << tc;
     }
 
@@ -69,7 +69,7 @@ int main() {
     { // gra1c.in
         int n = 1000;
         Graph p1 = Path(n / 2).generate();
-        Graph p2 = test(Tree(n / 2));
+        Graph p2 = test.generateFromSchema(Tree(n / 2));
         // result of below is stable, i.e. does not depend on what was generated in previous testcases
         // or any changes in it
         test << Testcase{n, merge(p1, p2, {{0, 0}})};
@@ -90,7 +90,7 @@ int main() {
         auto tc = test.getTest(); // get testcase from getTest function
         auto & [n, G] = tc;
         n = 1000;
-        G = test(Tree(n));
+        G = test.generateFromSchema(Tree(n));
         test << tc;
     }
 }
