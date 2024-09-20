@@ -28,15 +28,15 @@ int main() {
         test << out; // usage as normal stream
     }
 
-    test.getTest();
+    test.skipTest();
     { // gra2ocen.in
         // int n = 10;
         // test << n << '\n'
         //      << Tree(n) << '\n'; // using generator dedicated to particular testcase to generate random Tree
     }
 
-    test.getTest();
     { // gra3ocen.in
+        test.nextTest();
         Testcase t;
         t.n = 100;
         t.G = test.generateFromSchema(Tree(t.n)); // using generator dedicated to particular testcase to generate random Tree
@@ -50,6 +50,7 @@ int main() {
     });
 
     { // gra1a.in
+        test.nextTest();
         int n = 900;
         Graph p1 = Path(n / 3).generate();                 // deterministic path
         Graph p2 = test.generateFromSchema(Path(n / 3));   // random path
@@ -65,8 +66,8 @@ int main() {
         test << tc;
     }
 
-    test.getTest();
     { // gra1c.in
+        test.nextTest();
         int n = 1000;
         Graph p1 = Path(n / 2).generate();
         Graph p2 = test.generateFromSchema(Tree(n / 2));
@@ -78,7 +79,7 @@ int main() {
     test.nextSuite(); // drops previous suite assumptions, keeps the global one
 
     { // gra2a.in
-
+        test.nextTest();
         test.assumptionTest([](Testcase const & t) { // we can take Testcase by value or by reference
             return t.n == 1;
         });

@@ -49,6 +49,12 @@ public:
         return updateTestcase();
     }
 
+    void nextTest() {
+        TestcaseManagerT::nextTest();
+        assumptions.resetTest();
+        updateTestcase();
+    }
+
     // setTest(test_nr, suite), e.g. zad2c = (3, 2), 4ocen = (4, 0)
     // resets suite and test assumptions!
     template<typename T, typename U>
